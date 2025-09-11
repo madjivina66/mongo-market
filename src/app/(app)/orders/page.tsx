@@ -1,0 +1,61 @@
+import { orders } from '@/lib/data';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+export default function OrdersPage() {
+  return (
+    <div className="mx-auto max-w-4xl">
+      <h1 className="mb-8 text-center font-headline text-4xl font-bold text-primary">My Orders</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline">Order History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map(order => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell>{order.date}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        order.status === 'Delivered' ? 'default' : 
+                        order.status === 'Shipped' ? 'secondary' : 'outline'
+                      }
+                      className={
+                        order.status === 'Delivered' ? 'bg-primary/80' : 
+                        order.status === 'Shipped' ? 'bg-yellow-500/80 text-white' : ''
+                      }
+                    >
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{order.items}</TableCell>
+                  <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

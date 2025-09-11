@@ -1,3 +1,76 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "tomatoes",
+      "description": "Fresh red tomatoes on a vine.",
+      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageHint": "fresh tomatoes"
+    },
+    {
+      "id": "carrots",
+      "description": "A bunch of organic carrots with green tops.",
+      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageHint": "organic carrots"
+    },
+    {
+      "id": "apples",
+      "description": "Crisp red apples in a basket.",
+      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageHint": "red apples"
+    },
+    {
+      "id": "bananas",
+      "description": "A bunch of ripe yellow bananas.",
+      "imageUrl": "https://picsum.photos/seed/104/600/400",
+      "imageHint": "ripe bananas"
+    },
+    {
+      "id": "steak",
+      "description": "A thick-cut raw beef steak.",
+      "imageUrl": "https://picsum.photos/seed/105/600/400",
+      "imageHint": "raw steak"
+    },
+    {
+      "id": "chicken-breast",
+      "description": "Boneless, skinless chicken breasts.",
+      "imageUrl": "https://picsum.photos/seed/106/600/400",
+      "imageHint": "chicken breast"
+    },
+    {
+      "id": "milk",
+      "description": "A glass bottle of fresh milk.",
+      "imageUrl": "https://picsum.photos/seed/107/600/400",
+      "imageHint": "milk bottle"
+    },
+    {
+      "id": "cheese",
+      "description": "A block of cheddar cheese.",
+      "imageUrl": "https://picsum.photos/seed/108/600/400",
+      "imageHint": "cheddar cheese"
+    },
+    {
+      "id": "cinnamon",
+      "description": "Cinnamon sticks and ground cinnamon.",
+      "imageUrl": "https://picsum.photos/seed/109/600/400",
+      "imageHint": "cinnamon sticks"
+    },
+    {
+      "id": "paprika",
+      "description": "A small bowl of red paprika powder.",
+      "imageUrl": "https://picsum.photos/seed/110/600/400",
+      "imageHint": "paprika powder"
+    },
+    {
+        "id": "lettuce",
+        "description": "A head of fresh green lettuce.",
+        "imageUrl": "https://picsum.photos/seed/111/600/400",
+        "imageHint": "green lettuce"
+    },
+    {
+        "id": "oranges",
+        "description": "A pile of juicy oranges.",
+        "imageUrl": "https://picsum.photos/seed/112/600/400",
+        "imageHint": "juicy oranges"
+    }
+  ]
 }
