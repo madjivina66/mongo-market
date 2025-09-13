@@ -1,10 +1,6 @@
 import ProductGrid from './product-grid';
-import { getProducts, getCategories } from '@/lib/firebase-data';
 
-export default async function ProductsPage() {
-  const products = await getProducts();
-  const categories = await getCategories();
-  
+export default function ProductsPage() {
   return (
     <div className="container mx-auto">
       <header className="mb-8 text-center">
@@ -15,7 +11,7 @@ export default async function ProductsPage() {
           La fraîcheur livrée à votre porte
         </p>
       </header>
-      <ProductGrid allProducts={products} categories={categories} />
+      <ProductGrid />
     </div>
   );
 }

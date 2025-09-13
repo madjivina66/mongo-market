@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlusCircle, Search } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
+import { getProducts, getCategories } from '@/lib/firebase-data';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,18 +19,53 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface ProductGridProps {
-  allProducts: Product[];
-  categories: string[];
+function ProductCardSkeleton() {
+    return (
+        <Card className="flex flex-col overflow-hidden">
+            <CardHeader className="p-0">
+                <Skeleton className="h-48 w-full" />
+            </CardHeader>
+            <CardContent className="flex-1 p-4">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="mt-2 h-4 w-full" />
+            </CardContent>
+            <CardFooter className="flex items-center justify-between p-4 pt-0">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-9 w-24" />
+            </CardFooter>
+        </Card>
+    )
 }
 
-export default function ProductGrid({ allProducts, categories }: ProductGridProps) {
+export default function ProductGrid() {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tout');
   const { addToCart } = useCart();
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [products, fetchedCategories] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
+        setAllProducts(products);
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error("Failed to fetch products or categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,16 +108,28 @@ export default function ProductGrid({ allProducts, categories }: ProductGridProp
         </form>
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-none md:inline-flex">
-            {categories.map(category => (
-              <TabsTrigger key={category} value={category}>
-                {category}
-              </TabsTrigger>
-            ))}
+            {loading ? (
+                <>
+                    <Skeleton className="h-9 w-20" />
+                    <Skeleton className="h-9 w-20" />
+                    <Skeleton className="h-9 w-20" />
+                </>
+            ) : (
+                categories.map(category => (
+                <TabsTrigger key={category} value={category}>
+                    {category}
+                </TabsTrigger>
+                ))
+            )}
           </TabsList>
         </Tabs>
       </div>
-
-      {filteredProducts.length > 0 ? (
+      
+      {loading ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
+        </div>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map(product => (
             <Card key={product.id} className="flex flex-col overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-xl">
