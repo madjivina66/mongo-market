@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -8,10 +11,34 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getOrders } from '@/lib/firebase-data';
+import type { Order } from '@/lib/types';
 
-export default async function OrdersPage() {
-  const orders = await getOrders();
+function OrderRowSkeleton() {
+  return (
+    <TableRow>
+      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+      <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
+      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+      <TableCell className="text-right"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
+    </TableRow>
+  )
+}
+
+export default function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchOrders() {
+      const fetchedOrders = await getOrders();
+      setOrders(fetchedOrders);
+      setLoading(false);
+    }
+    fetchOrders();
+  }, []);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -32,7 +59,13 @@ export default async function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map(order => (
+              {loading ? (
+                <>
+                  <OrderRowSkeleton />
+                  <OrderRowSkeleton />
+                  <OrderRowSkeleton />
+                </>
+              ) : orders.map(order => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.date}</TableCell>
@@ -56,6 +89,11 @@ export default async function OrdersPage() {
               ))}
             </TableBody>
           </Table>
+           {!loading && orders.length === 0 && (
+            <div className="py-16 text-center text-muted-foreground">
+              Vous n'avez pas encore de commandes.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
