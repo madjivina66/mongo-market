@@ -46,10 +46,14 @@ export function AdOptimizerForm() {
     setResult(null);
     setError(null);
     try {
-      const recommendation = await getAdPlatformRecommendation(values);
-      setResult(recommendation);
+      const response = await getAdPlatformRecommendation(values);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      setResult(response.data || null);
     } catch (e) {
-      setError("Une erreur est survenue lors de l'obtention de la recommandation. Veuillez réessayer.");
+      const errorMessage = e instanceof Error ? e.message : "Une erreur est survenue lors de l'obtention de la recommandation. Veuillez réessayer.";
+      setError(errorMessage);
       console.error(e);
     } finally {
       setIsLoading(false);
