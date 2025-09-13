@@ -106,7 +106,7 @@ export default function ProductGrid({ allProducts, categories }: ProductGridProp
         </div>
       ) : (
         <div className="py-16 text-center">
-          <p className="text-lg text-muted-foreground">Aucun produit trouvé. Essayez d'ajuster votre recherche ou vos filtres.</p>
+          <p className="text-lg text-muted-foreground">Aucun résultat trouvé.</p>
         </div>
       )}
     </div>
