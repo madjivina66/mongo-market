@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from "@/components/ui/label";
 import { getUserProfile } from '@/lib/firebase-data';
 import type { UserProfile } from '@/lib/types';
 import { updateUserProfile } from './actions';
@@ -38,30 +39,30 @@ function ProfileSkeleton() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <FormLabel>Nom complet</FormLabel>
+          <Label>Nom complet</Label>
           <Skeleton className="h-10 w-full" />
         </div>
         <div className="space-y-2">
-          <FormLabel>Email</FormLabel>
+          <Label>Email</Label>
           <Skeleton className="h-10 w-full" />
         </div>
         <div className="space-y-2">
-          <FormLabel>Téléphone</FormLabel>
+          <Label>Téléphone</Label>
           <Skeleton className="h-10 w-full" />
         </div>
         <Separator />
         <h3 className="font-headline text-lg font-semibold">Adresse de livraison</h3>
         <div className="space-y-2">
-          <FormLabel>Rue</FormLabel>
+          <Label>Rue</Label>
           <Skeleton className="h-10 w-full" />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <FormLabel>Ville</FormLabel>
+            <Label>Ville</Label>
             <Skeleton className="h-10 w-full" />
           </div>
           <div className="space-y-2">
-            <FormLabel>Région</FormLabel>
+            <Label>Région</Label>
             <Skeleton className="h-10 w-full" />
           </div>
         </div>
@@ -76,6 +77,7 @@ function ProfileSkeleton() {
 
 export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const { toast } = useToast();
   
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -100,9 +102,13 @@ export default function ProfilePage() {
         const profile = await getUserProfile();
         if (profile) {
           form.reset(profile);
+          setProfileData(profile);
+        } else {
+            setProfileData({} as UserProfile); // set to empty object to stop skeleton
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        setProfileData({} as UserProfile); // set to empty object to stop skeleton
       }
     }
     fetchProfile();
@@ -129,10 +135,8 @@ export default function ProfilePage() {
       setIsLoading(false);
     }
   }
-
-  const isFormLoading = form.formState.isLoading || !form.formState.isDirty && form.formState.isSubmitted;
   
-  if (!form.formState.isDirty && !form.formState.isSubmitted && !form.getValues('name')) {
+  if (profileData === null) {
       return (
         <div className="mx-auto max-w-2xl">
           <h1 className="mb-8 text-center font-headline text-4xl font-bold text-primary">Mon Profil</h1>
