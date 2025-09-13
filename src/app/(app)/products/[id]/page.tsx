@@ -32,7 +32,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   }, [params.id]);
 
 
-  if (loading || !product) {
+  if (loading) {
     return (
         <div className="mx-auto max-w-4xl">
             <div className="grid gap-8 md:grid-cols-2">
@@ -49,6 +49,10 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
         </div>
     );
+  }
+
+  if (!product) {
+    return notFound();
   }
 
   const handleAddToCart = () => {
