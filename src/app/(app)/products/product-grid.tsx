@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlusCircle, Search } from 'lucide-react';
-import type { Product } from '@/lib/data';
+import type { Product } from '@/lib/types';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';

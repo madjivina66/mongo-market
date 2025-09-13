@@ -2,20 +2,53 @@
 
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { products } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle } from 'lucide-react';
+import type { Product } from '@/lib/types';
+import { getProductById } from '@/lib/firebase-data';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = products.find(p => p.id === params.id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  if (!product) {
-    notFound();
+  useEffect(() => {
+    async function fetchProduct() {
+      const fetchedProduct = await getProductById(params.id);
+      if (!fetchedProduct) {
+        notFound();
+      }
+      setProduct(fetchedProduct);
+      setLoading(false);
+    }
+    fetchProduct();
+  }, [params.id]);
+
+
+  if (loading || !product) {
+    return (
+        <div className="mx-auto max-w-4xl">
+            <div className="grid gap-8 md:grid-cols-2">
+                <div>
+                    <Skeleton className="w-full h-[600px] rounded-lg" />
+                </div>
+                <div className="flex flex-col justify-center space-y-4">
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-12 w-3/4" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-12 w-28" />
+                    <Skeleton className="h-12 w-48" />
+                </div>
+            </div>
+        </div>
+    );
   }
 
   const handleAddToCart = () => {

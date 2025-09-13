@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { Product } from '@/lib/data';
+import type { Product } from '@/lib/types';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -23,9 +23,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem('mongoMarketCart');
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
+    try {
+        const storedCart = localStorage.getItem('mongoMarketCart');
+        if (storedCart) {
+            setCartItems(JSON.parse(storedCart));
+        }
+    } catch (error) {
+        console.error("Failed to parse cart from localStorage", error);
+        setCartItems([]);
     }
   }, []);
 
