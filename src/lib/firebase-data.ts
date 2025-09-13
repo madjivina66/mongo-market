@@ -35,6 +35,7 @@ export async function getOrders(): Promise<Order[]> {
 export async function getUserProfile(): Promise<UserProfile | null> {
     // For this example, we'll fetch the first profile available.
     // In a real app, you'd get the current user's ID from an auth session.
+    await db.settings; // Ensures Firestore is ready
     const profileCollection = collection(db, 'userProfiles');
     const q = query(profileCollection, limit(1));
     const profileSnapshot = await getDocs(q);
