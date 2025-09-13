@@ -6,10 +6,10 @@ export default function ProductsPage() {
     <div className="container mx-auto">
       <header className="mb-8 text-center">
         <h1 className="font-headline text-4xl font-bold tracking-tight text-primary md:text-5xl">
-          Welcome to MongoMarket
+          Bienvenue sur MongoMarket
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Freshness Delivered to Your Doorstep
+          La fraîcheur livrée à votre porte
         </p>
       </header>
       <ProductGrid allProducts={products} categories={categories} />

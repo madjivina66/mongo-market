@@ -15,10 +15,10 @@ import { getAdPlatformRecommendation } from "./actions";
 
 const formSchema = z.object({
   customerPreferences: z.string().min(10, {
-    message: "Please provide more details about customer preferences.",
+    message: "Veuillez fournir plus de détails sur les préférences des clients.",
   }),
   salesData: z.string().min(10, {
-    message: "Please provide more details about sales data.",
+    message: "Veuillez fournir plus de détails sur les données de vente.",
   }),
 });
 
@@ -49,7 +49,7 @@ export function AdOptimizerForm() {
       const recommendation = await getAdPlatformRecommendation(values);
       setResult(recommendation);
     } catch (e) {
-      setError("An error occurred while getting the recommendation. Please try again.");
+      setError("Une erreur est survenue lors de l'obtention de la recommandation. Veuillez réessayer.");
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -59,8 +59,8 @@ export function AdOptimizerForm() {
   return (
     <Card>
         <CardHeader>
-            <CardTitle className="font-headline">Campaign Data</CardTitle>
-            <CardDescription>Enter customer preferences and sales data to get a platform recommendation.</CardDescription>
+            <CardTitle className="font-headline">Données de campagne</CardTitle>
+            <CardDescription>Entrez les préférences des clients et les données de vente pour obtenir une recommandation de plateforme.</CardDescription>
         </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -70,10 +70,10 @@ export function AdOptimizerForm() {
               name="customerPreferences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Preferences</FormLabel>
+                  <FormLabel>Préférences des clients</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., Younger audience, interested in visual content, located in urban areas."
+                      placeholder="Ex: Public jeune, intéressé par le contenu visuel, situé en zone urbaine."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -87,10 +87,10 @@ export function AdOptimizerForm() {
               name="salesData"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Sales Data</FormLabel>
+                  <FormLabel>Données de vente</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., High engagement on Instagram stories, best sales from Facebook ads targeting 25-35 age group."
+                      placeholder="Ex: Fort engagement sur les stories Instagram, meilleures ventes grâce aux publicités Facebook ciblant les 25-35 ans."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -101,23 +101,23 @@ export function AdOptimizerForm() {
             />
              <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Analyzing...' : 'Get Recommendation'}
+              {isLoading ? 'Analyse en cours...' : 'Obtenir la recommandation'}
             </Button>
           </form>
         </Form>
       </CardContent>
       {(isLoading || result || error) && (
         <CardFooter className="mt-6 flex flex-col items-center justify-center border-t pt-6">
-            {isLoading && <p>AI is thinking...</p>}
+            {isLoading && <p>L'IA réfléchit...</p>}
             {error && <p className="text-destructive">{error}</p>}
             {result && (
                 <Card className="w-full bg-background/50">
                     <CardHeader className="items-center text-center">
                         {platformIcons[result.recommendedPlatform]}
-                        <CardTitle className="font-headline text-2xl">Recommended Platform: {result.recommendedPlatform}</CardTitle>
+                        <CardTitle className="font-headline text-2xl">Plateforme recommandée : {result.recommendedPlatform}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <h3 className="font-semibold font-headline">AI Reasoning</h3>
+                        <h3 className="font-semibold font-headline">Raisonnement de l'IA</h3>
                         <p className="mt-2 text-muted-foreground">{result.reasoning}</p>
                     </CardContent>
                 </Card>

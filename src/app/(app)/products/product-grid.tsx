@@ -26,14 +26,14 @@ interface ProductGridProps {
 
 export default function ProductGrid({ allProducts, categories }: ProductGridProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('Tout');
   const { addToCart } = useCart();
   const { toast } = useToast();
 
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {
       const matchesCategory =
-        selectedCategory === 'All' || product.category === selectedCategory;
+        selectedCategory === 'Tout' || product.category === selectedCategory;
       const matchesSearch = product.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -44,8 +44,8 @@ export default function ProductGrid({ allProducts, categories }: ProductGridProp
   const handleAddToCart = (product: Product) => {
     addToCart(product);
     toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
+      title: "Ajouté au panier",
+      description: `${product.name} a été ajouté à votre panier.`,
     });
   };
 
@@ -55,7 +55,7 @@ export default function ProductGrid({ allProducts, categories }: ProductGridProp
         <div className="flex-1">
           <Input
             type="search"
-            placeholder="Search for products..."
+            placeholder="Rechercher des produits..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             className="w-full"
@@ -98,7 +98,7 @@ export default function ProductGrid({ allProducts, categories }: ProductGridProp
                 <span className="text-xl font-bold text-primary">${product.price.toFixed(2)}</span>
                 <Button variant="outline" size="sm" onClick={() => handleAddToCart(product)}>
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  Add
+                  Ajouter
                 </Button>
               </CardFooter>
             </Card>
@@ -106,7 +106,7 @@ export default function ProductGrid({ allProducts, categories }: ProductGridProp
         </div>
       ) : (
         <div className="py-16 text-center">
-          <p className="text-lg text-muted-foreground">No products found. Try adjusting your search or filters.</p>
+          <p className="text-lg text-muted-foreground">Aucun produit trouvé. Essayez d'ajuster votre recherche ou vos filtres.</p>
         </div>
       )}
     </div>

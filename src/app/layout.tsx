@@ -5,7 +5,7 @@ import { CartProvider } from '@/context/cart-context';
 
 export const metadata: Metadata = {
   title: 'MongoMarket Mobile',
-  description: 'Your one-stop shop for fresh products.',
+  description: 'Votre guichet unique pour les produits frais.',
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -13,19 +13,19 @@ import {
 export default function OrdersPage() {
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="mb-8 text-center font-headline text-4xl font-bold text-primary">My Orders</h1>
+      <h1 className="mb-8 text-center font-headline text-4xl font-bold text-primary">Mes commandes</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Order History</CardTitle>
+          <CardTitle className="font-headline">Historique des commandes</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
+                <TableHead>ID Commande</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Items</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Articles</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -37,12 +37,12 @@ export default function OrdersPage() {
                   <TableCell>
                     <Badge
                       variant={
-                        order.status === 'Delivered' ? 'default' : 
-                        order.status === 'Shipped' ? 'secondary' : 'outline'
+                        order.status === 'Livrée' ? 'default' : 
+                        order.status === 'Expédiée' ? 'secondary' : 'outline'
                       }
                       className={
-                        order.status === 'Delivered' ? 'bg-primary/80' : 
-                        order.status === 'Shipped' ? 'bg-yellow-500/80 text-white' : ''
+                        order.status === 'Livrée' ? 'bg-primary/80' : 
+                        order.status === 'Expédiée' ? 'bg-yellow-500/80 text-white' : ''
                       }
                     >
                       {order.status}

@@ -21,8 +21,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const handleAddToCart = () => {
     addToCart(product);
     toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
+      title: "Ajouté au panier",
+      description: `${product.name} a été ajouté à votre panier.`,
     });
   };
 
@@ -50,7 +50,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
           <Button size="lg" className="mt-8 font-headline text-lg" onClick={handleAddToCart}>
             <PlusCircle className="mr-2 h-5 w-5" />
-            Add to Cart
+            Ajouter au panier
           </Button>
         </div>
       </div>

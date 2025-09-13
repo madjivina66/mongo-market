@@ -16,10 +16,10 @@ import {
 } from '@/components/ui/sidebar';
 
 const links = [
-  { href: '/products', label: 'Products', icon: LayoutGrid },
-  { href: '/orders', label: 'My Orders', icon: ShoppingBag },
-  { href: '/profile', label: 'Profile', icon: User },
-  { href: '/admin/ad-optimizer', label: 'Ad Optimizer', icon: BarChart },
+  { href: '/products', label: 'Produits', icon: LayoutGrid },
+  { href: '/orders', label: 'Mes commandes', icon: ShoppingBag },
+  { href: '/profile', label: 'Profil', icon: User },
+  { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart },
 ];
 
 export function MainNav() {

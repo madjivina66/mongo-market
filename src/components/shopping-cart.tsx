@@ -23,7 +23,7 @@ export function ShoppingCartButton() {
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative rounded-full">
           <ShoppingCart className="h-5 w-5 text-primary" />
-          <span className="sr-only">Open shopping cart</span>
+          <span className="sr-only">Ouvrir le panier</span>
           {cartCount > 0 && (
             <Badge
               variant="default"
@@ -36,7 +36,7 @@ export function ShoppingCartButton() {
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="font-headline">Shopping Cart</SheetTitle>
+          <SheetTitle className="font-headline">Panier</SheetTitle>
         </SheetHeader>
         <CartContents />
       </SheetContent>
@@ -51,10 +51,10 @@ function CartContents() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4">
         <ShoppingCart className="h-16 w-16 text-muted-foreground" />
-        <p className="text-muted-foreground">Your cart is empty.</p>
+        <p className="text-muted-foreground">Votre panier est vide.</p>
         <SheetTrigger asChild>
             <Button asChild variant="outline">
-                <Link href="/products">Continue Shopping</Link>
+                <Link href="/products">Continuer vos achats</Link>
             </Button>
         </SheetTrigger>
       </div>
@@ -101,16 +101,16 @@ function CartContents() {
       <SheetFooter className="mt-4">
         <div className="w-full space-y-4">
             <div className="flex justify-between font-bold text-lg">
-                <span>Subtotal</span>
+                <span>Sous-total</span>
                 <span>${cartTotal.toFixed(2)}</span>
             </div>
              <SheetTrigger asChild>
                 <Button asChild size="lg" className="w-full font-headline text-lg">
-                    <Link href="/checkout">Proceed to Checkout</Link>
+                    <Link href="/checkout">Passer à la caisse</Link>
                 </Button>
             </SheetTrigger>
             <Button variant="outline" className="w-full" onClick={clearCart}>
-                Clear Cart
+                Vider le panier
             </Button>
         </div>
       </SheetFooter>
