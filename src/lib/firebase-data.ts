@@ -1,6 +1,6 @@
 'use server';
 import { db } from './firebase-config';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, limit, query } from 'firebase/firestore';
 import type { Product, Order, UserProfile } from './types';
 
 export async function getProducts(): Promise<Product[]> {
@@ -33,12 +33,17 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function getUserProfile(): Promise<UserProfile | null> {
-    // For this example, we'll fetch a single hardcoded profile document.
+    // For this example, we'll fetch the first profile available.
     // In a real app, you'd get the current user's ID from an auth session.
-    const profileRef = doc(db, 'userProfiles', 'jean-dupont');
-    const profileSnap = await getDoc(profileRef);
-    if (!profileSnap.exists()) {
+    const profileCollection = collection(db, 'userProfiles');
+    const q = query(profileCollection, limit(1));
+    const profileSnapshot = await getDocs(q);
+    
+    if (profileSnapshot.empty) {
+        console.warn("No user profiles found in the 'userProfiles' collection.");
         return null;
     }
-    return profileSnap.data() as UserProfile;
+
+    const profileDoc = profileSnapshot.docs[0];
+    return profileDoc.data() as UserProfile;
 }
