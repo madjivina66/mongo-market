@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase-config';
+import type { Order } from '@/lib/types';
+
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getOrders } from '@/lib/firebase-data';
-import type { Order } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 
 const statusStyles = {
@@ -56,17 +57,25 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const fetchedOrders = await getOrders();
-        setOrders(fetchedOrders);
-      } catch (error) {
-        console.error("Failed to fetch orders:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchOrders();
+    const q = query(collection(db, 'orders'));
+    
+    // onSnapshot écoute les changements en temps réel
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const fetchedOrders: Order[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
+      });
+      // Trier les commandes par date (si nécessaire, à ajuster selon le format de la date)
+      // fetchedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setOrders(fetchedOrders);
+      setLoading(false);
+    }, (error) => {
+      console.error("Failed to fetch real-time orders:", error);
+      setLoading(false);
+    });
+
+    // La fonction de nettoyage se désabonne de l'écouteur lorsque le composant est démonté
+    return () => unsubscribe();
   }, []);
 
   if (loading) {
