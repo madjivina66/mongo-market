@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -79,6 +80,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
   
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -125,6 +127,7 @@ export default function ProfilePage() {
         title: "Profil mis à jour",
         description: "Vos informations ont été sauvegardées avec succès.",
       });
+      router.push('/products');
     } catch (error) {
       toast({
         title: "Erreur",
