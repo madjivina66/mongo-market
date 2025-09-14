@@ -1,7 +1,15 @@
-# Settings to manage and configure a Firebase App Hosting backend.
-# https://firebase.google.com/docs/app-hosting/configure
+# Paramètres pour gérer et configurer un backend Firebase App Hosting.
+# Ce fichier indique à Firebase comment exécuter votre application une fois qu'elle est déployée.
+# Pour en savoir plus : https://firebase.google.com/docs/app-hosting/configure
 
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
+  # Augmentez cette valeur si vous souhaitez augmenter automatiquement
+  # le nombre d'instances en réponse à une augmentation du trafic.
   maxInstances: 1
+  # Augmenter la mémoire peut améliorer les performances de votre application.
+  # Les valeurs valides sont '256Mi', '512Mi', '1Gi', '2Gi', '4Gi', '8Gi', '16Gi'.
+  memoryMiB: 512
+
+# Les paramètres de déploiement, tels que le délai d'expiration, peuvent également être configurés ici.
+# par exemple :
+# deploymentTimeout: 600s
