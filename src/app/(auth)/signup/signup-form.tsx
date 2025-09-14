@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères.'),
@@ -22,6 +23,7 @@ export function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { signup } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,11 +36,8 @@ export function SignupForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // La logique d'inscription Firebase sera ajoutée ici
-    console.log(values);
     try {
-        // Simuler un appel API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await signup(values.email, values.password);
         toast({
             title: 'Compte créé avec succès',
             description: 'Vous allez être redirigé.',

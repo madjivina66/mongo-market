@@ -8,16 +8,18 @@ import {
   BarChart,
   User,
   LogIn,
+  LogOut,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
 import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import { Button } from './ui/button';
 
 const links = [
-  { href: '/products', label: 'Produits', icon: LayoutGrid },
+  { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
   { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
   { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true },
@@ -29,9 +31,16 @@ const linksUnauthenticated = [
 
 export function MainNav() {
   const pathname = usePathname();
-  // Pour l'instant, on simule un utilisateur non authentifié. 
-  // On remplacera `isAuthenticated` par une vraie logique plus tard.
-  const isAuthenticated = false; 
+  const { user, loading, logout } = useAuth();
+  const isAuthenticated = !!user;
+
+  if (loading) {
+      return (
+          <div className="p-4 space-y-2">
+              {/* You can add skeleton loaders here */}
+          </div>
+      )
+  }
 
   return (
     <SidebarMenu>
@@ -52,7 +61,7 @@ export function MainNav() {
             </SidebarMenuItem>
         );
       })}
-      {!isAuthenticated && linksUnauthenticated.map(link => (
+      {!isAuthenticated ? linksUnauthenticated.map(link => (
          <SidebarMenuItem key={link.href}>
             <Link href={link.href} className="w-full">
                 <SidebarMenuButton
@@ -65,7 +74,18 @@ export function MainNav() {
                 </SidebarMenuButton>
             </Link>
         </SidebarMenuItem>
-      ))}
+      )) : (
+        <SidebarMenuItem>
+             <SidebarMenuButton
+                onClick={logout}
+                className="w-full justify-start"
+                tooltip="Déconnexion"
+                >
+                <LogOut className="h-5 w-5 text-primary" />
+                <span>Déconnexion</span>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
     </SidebarMenu>
   );
 }

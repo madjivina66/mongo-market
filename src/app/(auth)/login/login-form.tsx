@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 const formSchema = z.object({
   email: z.string().email('Adresse email invalide.'),
@@ -21,6 +22,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,17 +34,13 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // La logique de connexion Firebase sera ajoutée ici
-    console.log(values);
     try {
-        // Simuler un appel API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await login(values.email, values.password);
         toast({
             title: 'Connexion réussie',
             description: 'Vous allez être redirigé.',
         });
         router.push('/products');
-
     } catch (error) {
         toast({
             title: 'Erreur de connexion',
