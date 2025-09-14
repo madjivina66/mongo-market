@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -94,7 +95,7 @@ export function SignupForm() {
                 <Input type="password" placeholder="••••••••" {...field} />
               </FormControl>
               <FormMessage />
-            </Item>
+            </FormItem>
           )}
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
