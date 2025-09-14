@@ -1,6 +1,8 @@
 "use server";
 
 import { z } from "zod";
+import { getUserProfile, updateUserProfileInDB } from "@/lib/firebase-data";
+import type { UserProfile } from "@/lib/types";
 
 const profileSchema = z.object({
   name: z.string(),
@@ -26,18 +28,25 @@ export async function updateUserProfile(
   profileData: UserProfileInput
 ): Promise<ActionResult> {
   try {
-    //
-    // TODO: Implémenter la mise à jour dans Firestore ici.
-    // Pour l'instant, nous allons juste simuler une réussite.
-    console.log("Mise à jour du profil avec les données suivantes :", profileData);
+    const existingProfile = await getUserProfile();
+    if (!existingProfile || !existingProfile.id) {
+      throw new Error("Profil utilisateur non trouvé ou ID manquant.");
+    }
 
-    // Simuler une attente réseau
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Combine existing data with new data
+    const updatedProfile: UserProfile = {
+      ...existingProfile,
+      ...profileData,
+    };
+
+    await updateUserProfileInDB(updatedProfile);
     
-    // Renvoyer un succès
+    console.log("Profil mis à jour avec succès avec les données :", updatedProfile);
+    
     return { data: { message: "Profil mis à jour avec succès !" } };
   } catch (error) {
     console.error("Erreur lors de la mise à jour du profil:", error);
-    return { error: "Impossible de mettre à jour le profil." };
+    const errorMessage = error instanceof Error ? error.message : "Impossible de mettre à jour le profil.";
+    return { error: errorMessage };
   }
 }

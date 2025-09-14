@@ -17,6 +17,7 @@ export type Order = {
 };
 
 export type UserProfile = {
+    id: string; // Added id to make document updates easier
     name: string;
     email: string;
     phone: string;
@@ -27,7 +28,7 @@ export type UserProfile = {
         zip: string;
         country: string;
     };
-    paymentMethods: {
+    paymentMethods?: { // Made optional as it may not exist
         type: string;
         details: string;
     }[];

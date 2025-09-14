@@ -1,6 +1,6 @@
 'use server';
 import { db } from './firebase-config';
-import { collection, getDocs, doc, getDoc, limit, query } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, limit, query, setDoc } from 'firebase/firestore';
 import type { Product, Order, UserProfile } from './types';
 
 export async function getProducts(): Promise<Product[]> {
@@ -46,5 +46,14 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     }
 
     const profileDoc = profileSnapshot.docs[0];
-    return profileDoc.data() as UserProfile;
+    return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
+}
+
+export async function updateUserProfileInDB(profile: UserProfile): Promise<void> {
+    if (!profile.id) {
+        throw new Error("Profile ID is missing. Cannot update.");
+    }
+    const profileRef = doc(db, 'userProfiles', profile.id);
+    // Use setDoc with merge: true to update or create if it doesn't exist.
+    await setDoc(profileRef, profile, { merge: true });
 }

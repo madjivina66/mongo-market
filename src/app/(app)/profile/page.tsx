@@ -106,15 +106,26 @@ export default function ProfilePage() {
           form.reset(profile);
           setProfileData(profile);
         } else {
+            // If no profile, show a toast and maybe redirect or show a message
+            toast({
+                title: "Profil non trouvé",
+                description: "Aucun profil utilisateur n'a été trouvé. Veuillez en créer un.",
+                variant: "destructive"
+            });
             setProfileData({} as UserProfile); // set to empty object to stop skeleton
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        toast({
+            title: "Erreur",
+            description: "Impossible de charger le profil.",
+            variant: "destructive"
+        });
         setProfileData({} as UserProfile); // set to empty object to stop skeleton
       }
     }
     fetchProfile();
-  }, [form]);
+  }, [form, toast]);
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
     setIsLoading(true);
@@ -129,9 +140,10 @@ export default function ProfilePage() {
       });
       router.push('/products');
     } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la mise à jour du profil.";
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour du profil.",
+        title: "Erreur de sauvegarde",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
