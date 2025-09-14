@@ -46,7 +46,6 @@ export default function ProductGrid() {
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tout');
   const { cartItems, addToCart } = useCart();
   const { toast } = useToast();
@@ -68,11 +67,6 @@ export default function ProductGrid() {
     }
     fetchData();
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveFilter(searchTerm);
-  };
   
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {
@@ -80,10 +74,10 @@ export default function ProductGrid() {
         selectedCategory === 'Tout' || product.category === selectedCategory;
       const matchesSearch = product.name
         .toLowerCase()
-        .includes(activeFilter.toLowerCase());
+        .includes(searchTerm.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [allProducts, selectedCategory, activeFilter]);
+  }, [allProducts, selectedCategory, searchTerm]);
   
   const handleAddToCart = (product: Product) => {
     addToCart(product);
@@ -101,18 +95,16 @@ export default function ProductGrid() {
   return (
     <div>
       <div className="mb-8 flex flex-col gap-4 md:flex-row">
-        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+        <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Rechercher des produits..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full"
+              className="w-full pl-10"
             />
-            <Button type="submit" aria-label="Rechercher">
-                <Search className="h-4 w-4" />
-            </Button>
-        </form>
+        </div>
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-none md:inline-flex">
             {loading ? (
@@ -178,7 +170,7 @@ export default function ProductGrid() {
         </div>
       ) : (
         <div className="py-16 text-center">
-          <p className="text-lg text-muted-foreground">Aucun résultat trouvé.</p>
+          <p className="text-lg text-muted-foreground">Aucun résultat trouvé pour "{searchTerm}".</p>
         </div>
       )}
     </div>
