@@ -29,24 +29,22 @@ export async function updateUserProfile(
 ): Promise<ActionResult> {
   try {
     const existingProfile = await getUserProfile();
-    if (!existingProfile || !existingProfile.id) {
-      throw new Error("Profil utilisateur non trouvé ou ID manquant.");
-    }
 
-    // Combine existing data with new data
-    const updatedProfile: UserProfile = {
-      ...existingProfile,
+    const profileToSave: UserProfile = {
       ...profileData,
+      // If an existing profile is found, use its ID. Otherwise, use a default ID to create a new one.
+      // In a real app, this would come from the authenticated user's ID.
+      id: existingProfile ? existingProfile.id : "default-user-profile",
     };
 
-    await updateUserProfileInDB(updatedProfile);
+    await updateUserProfileInDB(profileToSave);
     
-    console.log("Profil mis à jour avec succès avec les données :", updatedProfile);
+    console.log("Profil sauvegardé avec succès avec les données :", profileToSave);
     
-    return { data: { message: "Profil mis à jour avec succès !" } };
+    return { data: { message: "Profil sauvegardé avec succès !" } };
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du profil:", error);
-    const errorMessage = error instanceof Error ? error.message : "Impossible de mettre à jour le profil.";
+    console.error("Erreur lors de la sauvegarde du profil:", error);
+    const errorMessage = error instanceof Error ? error.message : "Impossible de sauvegarder le profil.";
     return { error: errorMessage };
   }
 }

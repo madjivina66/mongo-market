@@ -78,7 +78,8 @@ function ProfileSkeleton() {
 
 export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [isFetching, setIsFetching] = useState(true);
+  
   const { toast } = useToast();
   const router = useRouter();
   
@@ -100,28 +101,23 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchProfile() {
+      setIsFetching(true);
       try {
         const profile = await getUserProfile();
         if (profile) {
           form.reset(profile);
-          setProfileData(profile);
         } else {
-            // If no profile, show a toast and maybe redirect or show a message
-            toast({
-                title: "Profil non trouvé",
-                description: "Aucun profil utilisateur n'a été trouvé. Veuillez en créer un.",
-                variant: "destructive"
-            });
-            setProfileData({} as UserProfile); // set to empty object to stop skeleton
+            console.log("No profile found. Displaying empty form to create a new one.");
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
         toast({
-            title: "Erreur",
-            description: "Impossible de charger le profil.",
+            title: "Erreur de chargement",
+            description: "Impossible de charger les données du profil. Vous pouvez essayer de remplir le formulaire pour en créer un nouveau.",
             variant: "destructive"
         });
-        setProfileData({} as UserProfile); // set to empty object to stop skeleton
+      } finally {
+        setIsFetching(false);
       }
     }
     fetchProfile();
@@ -135,7 +131,7 @@ export default function ProfilePage() {
         throw new Error(result.error);
       }
       toast({
-        title: "Profil mis à jour",
+        title: "Profil sauvegardé",
         description: "Vos informations ont été sauvegardées avec succès.",
       });
       router.push('/products');
@@ -151,7 +147,7 @@ export default function ProfilePage() {
     }
   }
   
-  if (profileData === null) {
+  if (isFetching) {
       return (
         <div className="mx-auto max-w-2xl">
           <h1 className="mb-8 text-center font-headline text-4xl font-bold text-primary">Mon Profil</h1>
