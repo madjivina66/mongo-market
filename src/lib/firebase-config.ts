@@ -4,14 +4,16 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
+// This is a public configuration and it's safe to be exposed.
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: "mongo-market",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  "projectId": "mongo-market",
+  "appId": "1:331430267761:web:d5523450d0bb566270b201",
+  "storageBucket": "mongo-market.appspot.com",
+  "apiKey": "AIzaSyCV_2UFEAcw_G7hT5U-a_8h3eS4P2I3e0Y",
+  "authDomain": "mongo-market.firebaseapp.com",
+  "messagingSenderId": "331430267761"
 };
+
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();

@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { FirebaseError } from 'firebase/app';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères.'),
@@ -43,12 +44,30 @@ export function SignupForm() {
             title: 'Compte créé avec succès',
             description: 'Vous allez être redirigé.',
         });
-        router.push('/products');
+        router.push('/profile');
 
     } catch (error) {
+        console.error("Signup error:", error);
+        let description = "Une erreur inconnue est survenue.";
+        if (error instanceof FirebaseError) {
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    description = "Cet email est déjà utilisé par un autre compte.";
+                    break;
+                case 'auth/weak-password':
+                    description = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
+                    break;
+                case 'auth/invalid-email':
+                    description = "L'adresse email n'est pas valide.";
+                    break;
+                default:
+                    description = `Une erreur est survenue lors de l'inscription. Code: ${error.code}`;
+            }
+        }
+        
         toast({
             title: 'Erreur d\'inscription',
-            description: "Cet email est peut-être déjà utilisé.",
+            description: description,
             variant: 'destructive',
         });
     } finally {
