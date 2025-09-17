@@ -17,6 +17,12 @@ export default function LoginPage() {
           Content de vous revoir !
         </p>
         <LoginForm />
+         <p className="mt-4 text-center text-sm text-muted-foreground">
+            Vous n&apos;avez pas de compte ?{' '}
+            <Link href="/signup" className="font-semibold text-primary hover:underline">
+                Inscrivez-vous
+            </Link>
+        </p>
       </div>
     </div>
   );
