@@ -4,14 +4,27 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-// Your web app's Firebase configuration
+// =======================================================================
+// ATTENTION : ACTION REQUISE
+// =======================================================================
+// Veuillez remplacer l'objet firebaseConfig ci-dessous par le vôtre.
+// Vous pouvez trouver votre objet de configuration dans votre console Firebase :
+// 1. Allez dans les paramètres de votre projet Firebase.
+// 2. Dans l'onglet "Général", faites défiler jusqu'à "Vos applications".
+// 3. Sélectionnez votre application web.
+// 4. Choisissez l'option "Config" pour voir l'objet de configuration.
+// 5. Copiez et collez l'intégralité de l'objet ici.
+// =======================================================================
+
 const firebaseConfig = {
-  "projectId": "studio-5118145902-ea04a",
-  "appId": "1:870908828298:web:ddb21620337475c8402b73",
-  "storageBucket": "studio-5118145902-ea04a.firebasestorage.app",
-  "apiKey": "AIzaSyBcqpvacRbpfZEDbfnzeFdV-dFbVsNDneg",
-  "authDomain": "studio-5118145902-ea04a.firebaseapp.com",
-  "messagingSenderId": "870908828298",
+  // COLLEZ VOTRE CONFIGURATION FIREBASE ICI
+  // Exemple :
+  // apiKey: "AIza....",
+  // authDomain: "votre-projet.firebaseapp.com",
+  // projectId: "votre-projet",
+  // storageBucket: "votre-projet.appspot.com",
+  // messagingSenderId: "...",
+  // appId: "1:..."
 };
 
 
