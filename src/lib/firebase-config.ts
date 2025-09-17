@@ -17,14 +17,13 @@ import { getAuth } from "firebase/auth";
 // =======================================================================
 
 const firebaseConfig = {
-  // COLLEZ VOTRE CONFIGURATION FIREBASE ICI
-  // Exemple :
-  // apiKey: "AIza....",
-  // authDomain: "votre-projet.firebaseapp.com",
-  // projectId: "votre-projet",
-  // storageBucket: "votre-projet.appspot.com",
-  // messagingSenderId: "...",
-  // appId: "1:..."
+  "projectId": "studio-5118145902-ea04a",
+  "appId": "1:870908828298:web:ddb21620337475c8402b73",
+  "storageBucket": "studio-5118145902-ea04a.firebasestorage.app",
+  "apiKey": "AIzaSyBcqpvacRbpfZEDbfnzeFdV-dFbVsNDneg",
+  "authDomain": "studio-5118145902-ea04a.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "870908828298"
 };
 
 
