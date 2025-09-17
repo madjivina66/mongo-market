@@ -7,23 +7,19 @@ import { getAuth } from "firebase/auth";
 // =======================================================================
 // ATTENTION : ACTION REQUISE
 // =======================================================================
-// Veuillez remplacer l'objet firebaseConfig ci-dessous par le vôtre.
-// Vous pouvez trouver votre objet de configuration dans votre console Firebase :
-// 1. Allez dans les paramètres de votre projet Firebase.
-// 2. Dans l'onglet "Général", faites défiler jusqu'à "Vos applications".
-// 3. Sélectionnez votre application web.
-// 4. Choisissez l'option "Config" pour voir l'objet de configuration.
-// 5. Copiez et collez l'intégralité de l'objet ici.
+// Les variables de configuration de Firebase sont maintenant lues depuis
+// les variables d'environnement pour plus de sécurité et de flexibilité.
+// Assurez-vous que votre fichier .env contient les bonnes valeurs.
 // =======================================================================
 
 const firebaseConfig = {
-  "projectId": "studio-5118145902-ea04a",
-  "appId": "1:870908828298:web:ddb21620337475c8402b73",
-  "storageBucket": "studio-5118145902-ea04a.firebasestorage.app",
-  "apiKey": "AIzaSyBcqpvacRbpfZEDbfnzeFdV-dFbVsNDneg",
-  "authDomain": "studio-5118145902-ea04a.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "870908828298"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 
