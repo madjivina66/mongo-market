@@ -42,10 +42,11 @@ export function LoginForm() {
             description: 'Vous allez être redirigé.',
         });
         router.push('/products');
-    } catch (error) {
+    } catch (error: any) {
+        const description = `Une erreur est survenue : ${error.code || error.message}`;
         toast({
             title: 'Erreur de connexion',
-            description: "Vos identifiants sont incorrects.",
+            description: description,
             variant: 'destructive',
         });
     } finally {
