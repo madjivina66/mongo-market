@@ -5,12 +5,12 @@ import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  projectId: "studio-5118145902-ea04a",
-  appId: "1:870908828298:web:ddb21620337475c8402b73",
-  storageBucket: "studio-5118145902-ea04a.appspot.com",
-  apiKey: "AIzaSyDS0_gxwG_P2I3e0Yw_F9v-KzYubJ_1Q24",
-  authDomain: "studio-5118145902-ea04a.firebaseapp.com",
-  messagingSenderId: "870908828298",
+  projectId: "mongo-market",
+  appId: "1:774351319222:web:a6217c0a851167b2039a51",
+  storageBucket: "mongo-market.appspot.com",
+  apiKey: "AIzaSyAzgGNCf_vCgqXf-Gz8i_3G94y5eLajd-o",
+  authDomain: "mongo-market.firebaseapp.com",
+  messagingSenderId: "774351319222",
 };
 
 
