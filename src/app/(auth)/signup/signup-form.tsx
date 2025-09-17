@@ -48,8 +48,9 @@ export function SignupForm() {
         let description = "Une erreur est survenue. Veuillez réessayer.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Cet email est peut-être déjà utilisé. Essayez de vous connecter.";
-        } else if (error.code === 'auth/api-key-not-valid') {
-            description = "Erreur de configuration. La clé d'API Firebase n'est pas valide.";
+        } else {
+            // Affiche le code d'erreur réel pour un meilleur débogage
+            description = `Une erreur est survenue : ${error.code || error.message}`;
         }
         toast({
             title: 'Erreur de création de compte',
