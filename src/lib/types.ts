@@ -1,9 +1,10 @@
+
 export type Product = {
   id: string;
   name: string;
   description: string;
   price: number;
-  category: string;
+  category: 'Légumes' | 'Fruits' | 'Viande' | 'Produits laitiers' | 'Épices';
   imageUrl: string;
   imageHint: string;
 };
