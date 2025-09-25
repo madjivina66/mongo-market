@@ -1,12 +1,11 @@
 
 import admin from 'firebase-admin';
-import { firebaseConfig } from '@/firebase/config';
 
+// Dans un environnement Google Cloud comme celui-ci, appeler initializeApp()
+// sans argument est souvent la méthode la plus fiable. Le SDK détecte
+// automatiquement les informations du projet et les identifiants.
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`
-  });
+  admin.initializeApp();
 }
 
 export const adminDb = admin.firestore();
