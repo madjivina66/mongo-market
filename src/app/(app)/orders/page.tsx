@@ -65,6 +65,7 @@ export default function OrdersPage() {
       return;
     }
 
+    // Dans une vraie application, on filtrerait les commandes par l'ID de l'utilisateur connecté.
     const q = query(collection(firestore, 'orders'));
     
     // onSnapshot écoute les changements en temps réel

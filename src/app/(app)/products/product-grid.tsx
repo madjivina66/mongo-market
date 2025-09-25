@@ -50,13 +50,15 @@ export default function ProductGrid() {
   const [selectedCategory, setSelectedCategory] = useState('Tout');
   const { cartItems, addToCart } = useCart();
   const { toast } = useToast();
-  const firestore = useFirestore();
+  const firestore = useFirestore(); // Hook pour obtenir l'instance Firestore client
 
   useEffect(() => {
     async function fetchData() {
+      // S'assurer que firestore est disponible avant de faire des appels
       if (!firestore) return;
       setLoading(true);
       try {
+        // Appeler les fonctions de firebase-data avec l'instance de la DB
         const [products, fetchedCategories] = await Promise.all([
           getProducts(firestore),
           getCategories(firestore),
@@ -75,7 +77,7 @@ export default function ProductGrid() {
       }
     }
     fetchData();
-  }, [firestore, toast]);
+  }, [firestore, toast]); // L'effet dépend maintenant de firestore et toast
   
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {

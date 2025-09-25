@@ -8,14 +8,14 @@ import {
   setDoc,
   query,
   limit,
+  type Firestore,
 } from 'firebase/firestore';
-import { useFirestore } from '@/firebase'; // Ce hook garantit que firestore est initialisé
 import type { Product, UserProfile } from './types';
 
 // IMPORTANT: Ces fonctions fonctionnent maintenant côté client.
 // Pour les utiliser dans un composant, assurez-vous qu'il s'agit d'un composant client ('use client').
 
-export async function getProducts(db: any): Promise<Product[]> {
+export async function getProducts(db: Firestore): Promise<Product[]> {
   const productsCol = collection(db, 'products');
   const productSnapshot = await getDocs(productsCol);
   if (productSnapshot.empty) {
@@ -29,7 +29,7 @@ export async function getProducts(db: any): Promise<Product[]> {
 }
 
 export async function getProductById(
-  db: any,
+  db: Firestore,
   id: string
 ): Promise<Product | null> {
   const productRef = doc(db, 'products', id);
@@ -40,7 +40,7 @@ export async function getProductById(
   return { id: productSnap.id, ...productSnap.data() } as Product;
 }
 
-export async function getCategories(db: any): Promise<string[]> {
+export async function getCategories(db: Firestore): Promise<string[]> {
     const products = await getProducts(db);
     if (products.length === 0) {
         return ['Tout'];
@@ -49,11 +49,11 @@ export async function getCategories(db: any): Promise<string[]> {
     return categories;
 }
 
-
-export async function getUserProfile(db: any): Promise<UserProfile | null> {
+export async function getUserProfile(db: Firestore): Promise<UserProfile | null> {
   // Pour cet exemple, nous allons chercher le premier profil disponible.
   // Dans une vraie application, vous obtiendriez l'ID de l'utilisateur actuel à partir d'une session d'authentification.
   const profileCollection = collection(db, 'userProfiles');
+  // NOTE: Dans une vraie app, on filtrerait par l'ID de l'utilisateur connecté
   const q = query(profileCollection, limit(1));
   const profileSnapshot = await getDocs(q);
 
@@ -66,7 +66,7 @@ export async function getUserProfile(db: any): Promise<UserProfile | null> {
   return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
 }
 
-export async function updateUserProfileInDB(db: any, profile: UserProfile): Promise<void> {
+export async function updateUserProfileInDB(db: Firestore, profile: UserProfile): Promise<void> {
   if (!profile.id) {
     throw new Error("L'ID du profil est manquant. Impossible de mettre à jour.");
   }

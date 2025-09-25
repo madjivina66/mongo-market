@@ -19,17 +19,24 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const firestore = useFirestore();
+  const firestore = useFirestore(); // Hook pour obtenir l'instance Firestore client
 
   useEffect(() => {
     async function fetchProduct() {
+      // Attendre que firestore soit disponible
       if (!firestore) return;
-      const fetchedProduct = await getProductById(firestore, params.id);
-      if (!fetchedProduct) {
+      try {
+        const fetchedProduct = await getProductById(firestore, params.id);
+        if (!fetchedProduct) {
+          notFound();
+        }
+        setProduct(fetchedProduct);
+      } catch (error) {
+        console.error("Failed to fetch product:", error);
         notFound();
+      } finally {
+        setLoading(false);
       }
-      setProduct(fetchedProduct);
-      setLoading(false);
     }
     fetchProduct();
   }, [params.id, firestore]);

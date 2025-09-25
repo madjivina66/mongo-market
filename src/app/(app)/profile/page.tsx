@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,9 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Label } from "@/components/ui/label";
-import { getUserProfile } from '@/lib/firebase-data';
+import { getUserProfile, updateUserProfileInDB } from '@/lib/firebase-data';
 import type { UserProfile } from '@/lib/types';
-import { updateUserProfile } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
@@ -82,8 +80,7 @@ export default function ProfilePage() {
   const [isFetching, setIsFetching] = useState(true);
   
   const { toast } = useToast();
-  const router = useRouter();
-  const firestore = useFirestore();
+  const firestore = useFirestore(); // Hook pour obtenir l'instance Firestore client
   
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -144,7 +141,6 @@ export default function ProfilePage() {
         title: "Profil sauvegardé",
         description: "Vos informations ont été sauvegardées avec succès.",
       });
-      router.push('/products');
     } catch (error) {
        const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la mise à jour du profil.";
       toast({

@@ -1,7 +1,28 @@
 
-import { adminDb } from '@/lib/firebase-admin';
+// Ce script utilise le SDK Admin et est destiné à être exécuté depuis la ligne de commande,
+// PAS depuis le client ou le serveur Next.js.
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { PlaceHolderImages } from './placeholder-images';
 import type { Product } from './types';
+
+// Pour l'authentification en local, vous devez fournir vos identifiants de service.
+// NOTE: NE COMMETTEZ JAMAIS CE FICHIER AVEC VOS VRAIES CLÉS DE SERVICE DANS UN REPO PUBLIC.
+// Dans l'environnement Cloud, les identifiants sont souvent fournis automatiquement.
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+  : undefined;
+
+if (getApps().length === 0) {
+  initializeApp({
+    credential: serviceAccount ? cert(serviceAccount) : undefined,
+    // Si vous exécutez cela localement sans variables d'environnement,
+    // vous pourriez avoir besoin de spécifier la projectId.
+    // projectId: 'votre-project-id'
+  });
+}
+
+const adminDb = getFirestore();
 
 const products: Omit<Product, 'id'>[] = [
     { name: 'Tomates Fraîches', description: 'Grappe de tomates mûries au soleil.', price: 3.50, category: 'Légumes', imageUrl: PlaceHolderImages[0].imageUrl, imageHint: PlaceHolderImages[0].imageHint },
@@ -19,11 +40,10 @@ const products: Omit<Product, 'id'>[] = [
 ];
 
 async function seedDatabase() {
-    console.log("Accès à la base de données Admin...");
-    const db = adminDb;
+    console.log("Accès à la base de données Admin Firestore...");
     
-    const productsCollection = db.collection('products');
-    const batch = db.batch();
+    const productsCollection = adminDb.collection('products');
+    const batch = adminDb.batch();
 
     console.log(`Préparation de ${products.length} produits pour l'ajout...`);
     
@@ -36,12 +56,10 @@ async function seedDatabase() {
         console.log("Exécution du batch write...");
         await batch.commit();
         console.log(`✅ Succès ! ${products.length} produits ont été ajoutés à la collection 'products'.`);
-        console.log("Votre application a maintenant des données à afficher.");
+        console.log("Vous pouvez maintenant recharger votre application pour voir les données.");
     } catch (error) {
         console.error("❌ Erreur lors de l'ajout des produits à la base de données :", error);
-    } finally {
-        // In a long-running script, you might want to terminate the app
-        // For a simple script like this, it will exit automatically.
+        console.log("Vérifiez que vos identifiants d'administration (service account) sont correctement configurés si vous exécutez ce script localement.");
     }
 }
 
