@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase-config';
+import { useFirestore } from '@/firebase'; // Utiliser le nouveau hook
 import type { Order } from '@/lib/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -56,10 +56,16 @@ function OrdersSkeleton() {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const firestore = useFirestore(); // Obtenir l'instance de Firestore depuis le hook
 
   useEffect(() => {
-    const db = getDb();
-    const q = query(collection(db, 'orders'));
+    // Attendre que l'instance de firestore soit disponible
+    if (!firestore) {
+      setLoading(true);
+      return;
+    }
+
+    const q = query(collection(firestore, 'orders'));
     
     // onSnapshot écoute les changements en temps réel
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -67,8 +73,6 @@ export default function OrdersPage() {
       querySnapshot.forEach((doc) => {
         fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
       });
-      // Trier les commandes par date (si nécessaire, à ajuster selon le format de la date)
-      // fetchedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setOrders(fetchedOrders);
       setLoading(false);
     }, (error) => {
@@ -78,7 +82,7 @@ export default function OrdersPage() {
 
     // La fonction de nettoyage se désabonne de l'écouteur lorsque le composant est démonté
     return () => unsubscribe();
-  }, []);
+  }, [firestore]); // L'effet dépend de l'instance de firestore
 
   if (loading) {
     return (

@@ -1,8 +1,16 @@
 
 'use server';
-import { getDb } from './firebase-config';
+import { getFirestore } from 'firebase/firestore';
 import { collection, getDocs, doc, getDoc, limit, query, setDoc } from 'firebase/firestore';
 import type { Product, Order, UserProfile } from './types';
+import { initializeFirebase } from '@/firebase'; // Importer la nouvelle fonction d'initialisation
+
+// Fonction d'aide pour obtenir l'instance de Firestore
+function getDb() {
+    // Cette fonction utilise la nouvelle structure pour s'assurer que Firestore est initialisé
+    const { firestore } = initializeFirebase();
+    return firestore;
+}
 
 export async function getProducts(): Promise<Product[]> {
     const db = getDb();
