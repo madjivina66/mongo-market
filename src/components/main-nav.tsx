@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import {
   User,
   LogIn,
   LogOut,
+  Gem,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import {
@@ -16,13 +18,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { Button } from './ui/button';
 
 const links = [
   { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
   { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
-  { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true },
+  { href: '/subscription', label: 'Devenir Pro', icon: Gem, protected: true },
+  { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true, isPro: true },
 ];
 
 const linksUnauthenticated = [
@@ -33,6 +35,9 @@ export function MainNav() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   const isAuthenticated = !!user;
+  
+  // Dans une vraie application, cet état viendrait des données de l'utilisateur
+  const isProUser = false; 
 
   if (loading) {
       return (
@@ -46,9 +51,14 @@ export function MainNav() {
     <SidebarMenu>
       {links.map(link => {
         if (link.protected && !isAuthenticated) return null;
+
+        // Si le lien est pour les "Pro" et que l'utilisateur n'est pas pro,
+        // on le redirige vers la page d'abonnement.
+        const targetHref = link.isPro && !isProUser ? '/subscription' : link.href;
+        
         return (
             <SidebarMenuItem key={link.href}>
-            <Link href={link.href} className="w-full">
+            <Link href={targetHref} className="w-full">
                 <SidebarMenuButton
                 isActive={pathname === link.href}
                 className="w-full justify-start"
@@ -56,6 +66,7 @@ export function MainNav() {
                 >
                 <link.icon className="h-5 w-5 text-primary" />
                 <span>{link.label}</span>
+                {link.isPro && !isProUser && <Gem className="ml-auto h-4 w-4 text-yellow-500"/>}
                 </SidebarMenuButton>
             </Link>
             </SidebarMenuItem>
