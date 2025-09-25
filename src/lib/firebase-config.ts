@@ -1,8 +1,8 @@
 
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 
 // =======================================================================
 // CONFIGURATION FIREBASE DIRECTEMENT INTÉGRÉE
@@ -21,10 +21,30 @@ const firebaseConfig = {
   measurementId: ""
 };
 
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
+if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp();
+}
 
-export { db, auth };
+function getDb() {
+    if (!db) {
+        db = getFirestore(app);
+    }
+    return db;
+}
+
+function getAuthInstance() {
+    if (!auth) {
+        auth = getAuth(app);
+    }
+    return auth;
+}
+
+
+export { getDb, getAuthInstance };

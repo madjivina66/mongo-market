@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { db } from '@/lib/firebase-config';
+import { getDb } from '@/lib/firebase-config';
 import type { Order } from '@/lib/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const db = getDb();
     const q = query(collection(db, 'orders'));
     
     // onSnapshot écoute les changements en temps réel
