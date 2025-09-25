@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/cart-context';
 import { AuthProvider } from '@/context/auth-context';
+import { FirebaseClientProvider } from '@/firebase/client-provider'; // Importer le nouveau Provider
 
 export const metadata: Metadata = {
   title: 'MongoMarket Mobile',
@@ -22,12 +23,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased animated-background">
-        <AuthProvider>
-            <CartProvider>
-            {children}
-            <Toaster />
-            </CartProvider>
-        </AuthProvider>
+        <FirebaseClientProvider>
+          <AuthProvider>
+              <CartProvider>
+              {children}
+              <Toaster />
+              </CartProvider>
+          </AuthProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
