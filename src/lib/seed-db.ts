@@ -1,6 +1,5 @@
 
-import { initializeFirebase } from '@/firebase';
-import { collection, writeBatch } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import { PlaceHolderImages } from './placeholder-images';
 import type { Product } from './types';
 
@@ -20,17 +19,16 @@ const products: Omit<Product, 'id'>[] = [
 ];
 
 async function seedDatabase() {
-    console.log("Initialisation de Firebase...");
-    const { firestore } = initializeFirebase();
-    console.log("Instance de Firestore obtenue.");
-
-    const productsCollection = collection(firestore, 'products');
-    const batch = writeBatch(firestore);
+    console.log("Accès à la base de données Admin...");
+    const db = adminDb;
+    
+    const productsCollection = db.collection('products');
+    const batch = db.batch();
 
     console.log(`Préparation de ${products.length} produits pour l'ajout...`);
     
     products.forEach((product) => {
-        const docRef = collection(firestore, 'products').doc();
+        const docRef = productsCollection.doc(); // Auto-generate ID
         batch.set(docRef, product);
     });
 
@@ -41,12 +39,10 @@ async function seedDatabase() {
         console.log("Votre application a maintenant des données à afficher.");
     } catch (error) {
         console.error("❌ Erreur lors de l'ajout des produits à la base de données :", error);
+    } finally {
+        // In a long-running script, you might want to terminate the app
+        // For a simple script like this, it will exit automatically.
     }
 }
 
-// Pour exécuter ce script, vous devrez l'appeler depuis un environnement Node.js
-// via une commande dans votre terminal.
-// Par exemple : `node -r ts-node/register src/lib/seed-db.ts`
-// Mais comme nous ne pouvons pas exécuter de commande shell ici,
-// la fonction est simplement exportée.
 seedDatabase();
