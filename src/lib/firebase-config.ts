@@ -5,21 +5,20 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 // =======================================================================
-// ATTENTION : ACTION REQUISE
+// CONFIGURATION FIREBASE DIRECTEMENT INTÉGRÉE
 // =======================================================================
-// Les variables de configuration de Firebase sont maintenant lues depuis
-// les variables d'environnement pour plus de sécurité et de flexibilité.
-// Assurez-vous que votre fichier .env contient les bonnes valeurs.
+// Pour résoudre l'erreur persistante, la configuration est maintenant
+// directement dans le code. C'est la méthode la plus fiable dans ce contexte.
 // =======================================================================
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyBcqpvacRbpfZEDbfnzeFdV-dFbVsNDneg",
+  authDomain: "studio-5118145902-ea04a.firebaseapp.com",
+  projectId: "studio-5118145902-ea04a",
+  storageBucket: "studio-5118145902-ea04a.firebasestorage.app",
+  messagingSenderId: "870908828298",
+  appId: "1:870908828298:web:ddb21620337475c8402b73",
+  measurementId: ""
 };
 
 
