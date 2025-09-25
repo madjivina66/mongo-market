@@ -18,6 +18,7 @@ import type { UserProfile } from '@/lib/types';
 import { updateUserProfile } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères.'),
@@ -82,6 +83,7 @@ export default function ProfilePage() {
   
   const { toast } = useToast();
   const router = useRouter();
+  const firestore = useFirestore();
   
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -101,9 +103,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchProfile() {
+      if (!firestore) return;
       setIsFetching(true);
       try {
-        const profile = await getUserProfile();
+        const profile = await getUserProfile(firestore);
         if (profile) {
           form.reset(profile);
         } else {
@@ -121,15 +124,22 @@ export default function ProfilePage() {
       }
     }
     fetchProfile();
-  }, [form, toast]);
+  }, [form, toast, firestore]);
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
     setIsLoading(true);
+    if (!firestore) {
+        toast({ title: "Erreur", description: "La base de données n'est pas connectée.", variant: "destructive"});
+        setIsLoading(false);
+        return;
+    }
+
     try {
-      const result = await updateUserProfile(values);
-      if (result.error) {
-        throw new Error(result.error);
-      }
+      const profileToSave: UserProfile = {
+        ...values,
+        id: "default-user-profile", // Dans une vraie app, cet id viendrait de l'utilisateur authentifié
+      };
+      await updateUserProfileInDB(firestore, profileToSave);
       toast({
         title: "Profil sauvegardé",
         description: "Vos informations ont été sauvegardées avec succès.",

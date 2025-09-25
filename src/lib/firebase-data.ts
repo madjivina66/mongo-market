@@ -1,68 +1,76 @@
+'use client';
 
-'use server';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  query,
+  limit,
+} from 'firebase/firestore';
+import { useFirestore } from '@/firebase'; // Ce hook garantit que firestore est initialisé
+import type { Product, UserProfile } from './types';
 
-import { adminDb } from '@/lib/firebase-admin';
-import type { Product, Order, UserProfile } from './types';
+// IMPORTANT: Ces fonctions fonctionnent maintenant côté client.
+// Pour les utiliser dans un composant, assurez-vous qu'il s'agit d'un composant client ('use client').
 
-// Note: We are now using the Firebase Admin SDK for server-side data fetching.
-// The functions from 'firebase/firestore' (client-side) are replaced with
-// direct interactions with the adminDb instance.
-
-export async function getProducts(): Promise<Product[]> {
-    const productsCol = adminDb.collection('products');
-    const productSnapshot = await productsCol.get();
-    if (productSnapshot.empty) {
-        return [];
-    }
-    const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    return productList;
+export async function getProducts(db: any): Promise<Product[]> {
+  const productsCol = collection(db, 'products');
+  const productSnapshot = await getDocs(productsCol);
+  if (productSnapshot.empty) {
+    return [];
+  }
+  const productList = productSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Product[];
+  return productList;
 }
 
-export async function getProductById(id: string): Promise<Product | null> {
-    const productRef = adminDb.collection('products').doc(id);
-    const productSnap = await productRef.get();
-    if (!productSnap.exists) {
-        return null;
-    }
-    return { id: productSnap.id, ...productSnap.data() } as Product;
+export async function getProductById(
+  db: any,
+  id: string
+): Promise<Product | null> {
+  const productRef = doc(db, 'products', id);
+  const productSnap = await getDoc(productRef);
+  if (!productSnap.exists()) {
+    return null;
+  }
+  return { id: productSnap.id, ...productSnap.data() } as Product;
 }
 
-export async function getCategories(): Promise<string[]> {
-    const products = await getProducts();
+export async function getCategories(db: any): Promise<string[]> {
+    const products = await getProducts(db);
+    if (products.length === 0) {
+        return ['Tout'];
+    }
     const categories = ['Tout', ...new Set(products.map(p => p.category))];
     return categories;
 }
 
-export async function getOrders(): Promise<Order[]> {
-    const ordersCol = adminDb.collection('orders');
-    const orderSnapshot = await ordersCol.get();
-     if (orderSnapshot.empty) {
-        return [];
-    }
-    const orderList = orderSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-    return orderList;
+
+export async function getUserProfile(db: any): Promise<UserProfile | null> {
+  // Pour cet exemple, nous allons chercher le premier profil disponible.
+  // Dans une vraie application, vous obtiendriez l'ID de l'utilisateur actuel à partir d'une session d'authentification.
+  const profileCollection = collection(db, 'userProfiles');
+  const q = query(profileCollection, limit(1));
+  const profileSnapshot = await getDocs(q);
+
+  if (profileSnapshot.empty) {
+    console.warn("Aucun profil utilisateur trouvé dans la collection 'userProfiles'.");
+    return null;
+  }
+
+  const profileDoc = profileSnapshot.docs[0];
+  return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
 }
 
-export async function getUserProfile(): Promise<UserProfile | null> {
-    // For this example, we'll fetch the first profile available.
-    // In a real app, you'd get the current user's ID from an auth session.
-    const profileCollection = adminDb.collection('userProfiles');
-    const profileSnapshot = await profileCollection.limit(1).get();
-    
-    if (profileSnapshot.empty) {
-        console.warn("No user profiles found in the 'userProfiles' collection.");
-        return null;
-    }
-
-    const profileDoc = profileSnapshot.docs[0];
-    return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
-}
-
-export async function updateUserProfileInDB(profile: UserProfile): Promise<void> {
-    if (!profile.id) {
-        throw new Error("Profile ID is missing. Cannot update.");
-    }
-    const profileRef = adminDb.collection('userProfiles').doc(profile.id);
-    // Use setDoc with merge: true to update or create if it doesn't exist.
-    await profileRef.set(profile, { merge: true });
+export async function updateUserProfileInDB(db: any, profile: UserProfile): Promise<void> {
+  if (!profile.id) {
+    throw new Error("L'ID du profil est manquant. Impossible de mettre à jour.");
+  }
+  const profileRef = doc(db, 'userProfiles', profile.id);
+  // Utiliser set avec merge: true pour mettre à jour ou créer s'il n'existe pas.
+  await setDoc(profileRef, profile, { merge: true });
 }

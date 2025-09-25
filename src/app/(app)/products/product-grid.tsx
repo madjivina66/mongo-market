@@ -9,6 +9,7 @@ import type { Product } from '@/lib/types';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts, getCategories } from '@/lib/firebase-data';
+import { useFirestore } from '@/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,24 +50,32 @@ export default function ProductGrid() {
   const [selectedCategory, setSelectedCategory] = useState('Tout');
   const { cartItems, addToCart } = useCart();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   useEffect(() => {
     async function fetchData() {
+      if (!firestore) return;
+      setLoading(true);
       try {
         const [products, fetchedCategories] = await Promise.all([
-          getProducts(),
-          getCategories(),
+          getProducts(firestore),
+          getCategories(firestore),
         ]);
         setAllProducts(products);
         setCategories(fetchedCategories);
       } catch (error) {
         console.error("Failed to fetch products or categories:", error);
+        toast({
+            title: "Erreur de chargement",
+            description: "Impossible de récupérer les produits depuis la base de données.",
+            variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     }
     fetchData();
-  }, []);
+  }, [firestore, toast]);
   
   const filteredProducts = useMemo(() => {
     return allProducts.filter(product => {

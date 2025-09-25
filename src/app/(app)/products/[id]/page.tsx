@@ -11,6 +11,7 @@ import type { Product } from '@/lib/types';
 import { getProductById } from '@/lib/firebase-data';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFirestore } from '@/firebase';
 
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
@@ -18,10 +19,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   useEffect(() => {
     async function fetchProduct() {
-      const fetchedProduct = await getProductById(params.id);
+      if (!firestore) return;
+      const fetchedProduct = await getProductById(firestore, params.id);
       if (!fetchedProduct) {
         notFound();
       }
@@ -29,7 +32,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
       setLoading(false);
     }
     fetchProduct();
-  }, [params.id]);
+  }, [params.id, firestore]);
 
 
   if (loading) {
