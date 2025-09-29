@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -30,6 +31,19 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+   async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Authorization',
+            value: '',
+          },
+        ],
+      },
+    ];
   },
   experimental: {
     // This allows the Next.js dev server to be accessed from the cloud workstation URL.
