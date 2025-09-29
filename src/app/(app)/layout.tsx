@@ -43,8 +43,8 @@ export default function AppLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const protectedRoutes = ['/orders', '/profile', '/subscription', '/admin/ad-optimizer'];
-  const isProtectedRoute = protectedRoutes.includes(pathname);
+  // Toutes les routes sous /admin/ ainsi que les routes personnelles sont protégées.
+  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription'].includes(pathname);
 
   useEffect(() => {
     if (loading) {
@@ -56,7 +56,7 @@ export default function AppLayout({
     if (isProtectedRoute && (!user || user.isAnonymous)) {
       router.push('/login');
     }
-  }, [user, loading, router, isProtectedRoute]);
+  }, [user, loading, router, isProtectedRoute, pathname]);
 
   // Affiche un écran de chargement pendant la vérification de l'authentification
   if (loading) {
