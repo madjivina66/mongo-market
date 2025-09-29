@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously } from 'firebase/auth';
 import { useAuth as useFirebaseAuth } from '@/firebase'; // Importer le hook depuis la nouvelle structure
 
 interface AuthContextType {
@@ -25,15 +25,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // S'assurer que l'instance d'authentification est prête avant de s'abonner
     if (!auth) {
-        // L'instance d'authentification n'est pas encore prête, on attend.
-        // La nouvelle structure gère l'initialisation.
         setLoading(true);
         return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+      if (user) {
+        setUser(user);
+        setLoading(false);
+      } else {
+        // Si aucun utilisateur n'est connecté, on tente une connexion anonyme
+        // pour permettre l'accès aux données publiques comme les produits.
+        signInAnonymously(auth).catch((error) => {
+          console.error("Anonymous sign-in failed:", error);
+          // Même en cas d'échec, on arrête le chargement pour ne pas bloquer l'UI.
+          setUser(null);
+          setLoading(false);
+        });
+      }
     });
 
     return () => unsubscribe();

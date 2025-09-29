@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Header } from '@/components/header';
 import { Logo } from '@/components/logo';
@@ -41,43 +41,50 @@ export default function AppLayout({
 }>) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const protectedRoutes = ['/orders', '/profile', '/subscription', '/admin/ad-optimizer'];
+  const isProtectedRoute = protectedRoutes.includes(pathname);
 
   useEffect(() => {
-    // Si le chargement est terminé et qu'il n'y a pas d'utilisateur,
-    // on redirige vers la page de connexion.
-    if (!loading && !user) {
+    if (loading) {
+      return; // On ne fait rien tant que l'authentification est en cours
+    }
+
+    // Si on est sur une route protégée et qu'il n'y a pas d'utilisateur
+    // ou que l'utilisateur est anonyme, on redirige vers la page de connexion.
+    if (isProtectedRoute && (!user || user.isAnonymous)) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isProtectedRoute]);
 
   // Affiche un écran de chargement pendant la vérification de l'authentification
   if (loading) {
     return <AppLoading />;
   }
   
-  // Si un utilisateur est connecté, on affiche la page
-  if (user) {
-    return (
-        <SidebarProvider>
-        <Sidebar>
-            <SidebarHeader>
-            <Logo />
-            </SidebarHeader>
-            <SidebarContent>
-            <MainNav />
-            </SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-            <Header />
-            <main className="flex-1 p-4 sm:p-6">
-            {children}
-            </main>
-        </SidebarInset>
-        </SidebarProvider>
-    );
+  // Si on est sur une route protégée sans utilisateur valide, on affiche le chargement pour éviter un flash de contenu
+  if (isProtectedRoute && (!user || user.isAnonymous)) {
+    return <AppLoading />;
   }
 
-  // Ce cas ne devrait pas être atteint si la redirection fonctionne,
-  // mais c'est une sécurité.
-  return null;
+  // Dans tous les autres cas (routes publiques ou routes protégées avec un utilisateur valide), on affiche le contenu.
+  return (
+      <SidebarProvider>
+      <Sidebar>
+          <SidebarHeader>
+          <Logo />
+          </SidebarHeader>
+          <SidebarContent>
+          <MainNav />
+          </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+          <Header />
+          <main className="flex-1 p-4 sm:p-6">
+          {children}
+          </main>
+      </SidebarInset>
+      </SidebarProvider>
+  );
 }
