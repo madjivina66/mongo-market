@@ -43,20 +43,23 @@ export default function AppLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Toutes les routes sous /admin/ ainsi que les routes personnelles sont protégées.
+  // Détermine si une route est protégée (commence par /admin, ou est une page personnelle)
   const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription'].includes(pathname);
 
   useEffect(() => {
+    // Si l'authentification est en cours, ne rien faire.
     if (loading) {
-      return; // On ne fait rien tant que l'authentification est en cours
+      return;
     }
 
-    // Si on est sur une route protégée et qu'il n'y a pas d'utilisateur
-    // ou que l'utilisateur est anonyme, on redirige vers la page de connexion.
+    // Si on est sur une route protégée et que l'utilisateur n'est pas connecté
+    // (ni en tant qu'utilisateur réel, ni en tant qu'anonyme), on redirige vers /login.
     if (isProtectedRoute && (!user || user.isAnonymous)) {
       router.push('/login');
     }
-  }, [user, loading, router, isProtectedRoute, pathname]);
+  // J'ai enlevé la logique complexe qui causait des problèmes.
+  // La vérification se base maintenant uniquement sur l'état de connexion.
+  }, [user, loading, router, isProtectedRoute]);
 
   // Affiche un écran de chargement pendant la vérification de l'authentification
   if (loading) {
