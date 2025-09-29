@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query } from 'firebase/firestore';
-import { useFirestore } from '@/firebase'; // Utiliser le nouveau hook
+import { useMemo } from 'react';
+import { collection, query, where } from 'firebase/firestore';
+import { useAuth, useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase'; 
 import type { Order } from '@/lib/types';
 
 import { Badge } from '@/components/ui/badge';
@@ -52,67 +52,20 @@ function OrdersSkeleton() {
   );
 }
 
-
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const firestore = useFirestore(); // Obtenir l'instance de Firestore depuis le hook
-
-  useEffect(() => {
-    // Attendre que l'instance de firestore soit disponible
-    if (!firestore) {
-      setLoading(true);
-      return;
+function OrdersList({ orders }: { orders: WithId<Order>[] }) {
+    if (orders.length === 0) {
+        return (
+            <Card className="py-16 text-center">
+                <CardContent className="flex flex-col items-center gap-4">
+                    <ShoppingCart className="h-16 w-16 text-muted-foreground/50" />
+                    <h2 className="font-headline text-2xl">Vous n'avez pas encore de commandes.</h2>
+                    <p className="text-muted-foreground">Passez votre première commande pour la voir apparaître ici.</p>
+                </CardContent>
+            </Card>
+        );
     }
 
-    // Dans une vraie application, on filtrerait les commandes par l'ID de l'utilisateur connecté.
-    const q = query(collection(firestore, 'orders'));
-    
-    // onSnapshot écoute les changements en temps réel
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const fetchedOrders: Order[] = [];
-      querySnapshot.forEach((doc) => {
-        fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
-      });
-      setOrders(fetchedOrders);
-      setLoading(false);
-    }, (error) => {
-      console.error("Failed to fetch real-time orders:", error);
-      setLoading(false);
-    });
-
-    // La fonction de nettoyage se désabonne de l'écouteur lorsque le composant est démonté
-    return () => unsubscribe();
-  }, [firestore]); // L'effet dépend de l'instance de firestore
-
-  if (loading) {
     return (
-        <div className="mx-auto max-w-4xl">
-             <header className="mb-8 text-center">
-                <h1 className="font-headline text-4xl font-bold tracking-tight text-primary md:text-5xl">
-                Mes commandes
-                </h1>
-                <p className="mt-2 text-lg text-muted-foreground">
-                Suivez l'historique de vos achats ici.
-                </p>
-            </header>
-            <OrdersSkeleton />
-        </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-4xl">
-      <header className="mb-8 text-center">
-        <h1 className="font-headline text-4xl font-bold tracking-tight text-primary md:text-5xl">
-          Mes commandes
-        </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Suivez l'historique de vos achats ici.
-        </p>
-      </header>
-
-      {orders.length > 0 ? (
         <Card>
           <CardContent className="pt-6">
             <Table>
@@ -141,14 +94,39 @@ export default function OrdersPage() {
             </Table>
           </CardContent>
         </Card>
+    );
+}
+
+
+export default function OrdersPage() {
+  const firestore = useFirestore();
+  const { user } = useAuth();
+
+  // Créez une requête pour les commandes de l'utilisateur actuel.
+  // useMemo garantit que la requête n'est pas recréée à chaque rendu.
+  const ordersQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'orders'), where('userId', '==', user.uid));
+  }, [firestore, user]);
+
+  // Utilisez le hook useCollection pour écouter les données en temps réel.
+  const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      <header className="mb-8 text-center">
+        <h1 className="font-headline text-4xl font-bold tracking-tight text-primary md:text-5xl">
+          Mes commandes
+        </h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Suivez l'historique de vos achats ici.
+        </p>
+      </header>
+
+      {isLoading || !orders ? (
+        <OrdersSkeleton />
       ) : (
-        <Card className="py-16 text-center">
-            <CardContent className="flex flex-col items-center gap-4">
-                <ShoppingCart className="h-16 w-16 text-muted-foreground/50" />
-                <h2 className="font-headline text-2xl">Vous n'avez pas encore de commandes.</h2>
-                <p className="text-muted-foreground">Passez votre première commande pour la voir apparaître ici.</p>
-            </CardContent>
-        </Card>
+        <OrdersList orders={orders} />
       )}
     </div>
   );

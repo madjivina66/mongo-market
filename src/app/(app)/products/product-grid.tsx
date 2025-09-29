@@ -1,15 +1,16 @@
 
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlusCircle, Search } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
-import { getProducts, getCategories } from '@/lib/firebase-data';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,43 +44,27 @@ function ProductCardSkeleton() {
 }
 
 export default function ProductGrid() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tout');
   const { cartItems, addToCart } = useCart();
   const { toast } = useToast();
-  const firestore = useFirestore(); // Hook pour obtenir l'instance Firestore client
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    async function fetchData() {
-      // S'assurer que firestore est disponible avant de faire des appels
-      if (!firestore) return;
-      setLoading(true);
-      try {
-        // Appeler les fonctions de firebase-data avec l'instance de la DB
-        const [products, fetchedCategories] = await Promise.all([
-          getProducts(firestore),
-          getCategories(firestore),
-        ]);
-        setAllProducts(products);
-        setCategories(fetchedCategories);
-      } catch (error) {
-        console.error("Failed to fetch products or categories:", error);
-        toast({
-            title: "Erreur de chargement",
-            description: "Impossible de récupérer les produits depuis la base de données.",
-            variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [firestore, toast]); // L'effet dépend maintenant de firestore et toast
+  // Requête mémoïsée pour récupérer tous les produits
+  const productsQuery = useMemoFirebase(() => {
+      return query(collection(firestore, 'products'));
+  }, [firestore]);
+
+  const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+
+  const categories = useMemo(() => {
+    if (!allProducts) return ['Tout'];
+    const uniqueCategories = new Set(allProducts.map(p => p.category));
+    return ['Tout', ...Array.from(uniqueCategories)];
+  }, [allProducts]);
   
   const filteredProducts = useMemo(() => {
+    if (!allProducts) return [];
     return allProducts.filter(product => {
       const matchesCategory =
         selectedCategory === 'Tout' || product.category === selectedCategory;
@@ -118,7 +103,7 @@ export default function ProductGrid() {
         </div>
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
           <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-none md:inline-flex">
-            {loading ? (
+            {isLoadingProducts ? (
                 <>
                     <Skeleton className="h-9 w-20" />
                     <Skeleton className="h-9 w-20" />
@@ -135,7 +120,7 @@ export default function ProductGrid() {
         </Tabs>
       </div>
       
-      {loading ? (
+      {isLoadingProducts ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
         </div>
@@ -181,7 +166,7 @@ export default function ProductGrid() {
         </div>
       ) : (
         <div className="py-16 text-center">
-          <p className="text-lg text-muted-foreground">Aucun résultat trouvé pour "{searchTerm}".</p>
+          <p className="text-lg text-muted-foreground">Aucun produit trouvé.</p>
         </div>
       )}
     </div>

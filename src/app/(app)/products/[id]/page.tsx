@@ -9,41 +9,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle } from 'lucide-react';
 import type { Product } from '@/lib/types';
-import { getProductById } from '@/lib/firebase-data';
-import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
-  const { toast } = useToast();
-  const firestore = useFirestore(); // Hook pour obtenir l'instance Firestore client
-
-  useEffect(() => {
-    async function fetchProduct() {
-      // Attendre que firestore soit disponible
-      if (!firestore) return;
-      try {
-        const fetchedProduct = await getProductById(firestore, params.id);
-        if (!fetchedProduct) {
-          notFound();
-        }
-        setProduct(fetchedProduct);
-      } catch (error) {
-        console.error("Failed to fetch product:", error);
-        notFound();
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProduct();
-  }, [params.id, firestore]);
-
-
-  if (loading) {
+function ProductDetailSkeleton() {
     return (
         <div className="mx-auto max-w-4xl">
             <div className="grid gap-8 md:grid-cols-2">
@@ -60,10 +31,34 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
         </div>
     );
+}
+
+export default function ProductDetailPage({ params }: { params: { id: string } }) {
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+  const firestore = useFirestore();
+
+  // Crée une référence de document mémoïsée pour le produit
+  const productRef = useMemoFirebase(() => {
+    return doc(firestore, 'products', params.id);
+  }, [firestore, params.id]);
+
+  // Utilise le hook useDoc pour récupérer les données du produit
+  const { data: product, isLoading, error } = useDoc<Product>(productRef);
+
+  // Si une erreur se produit (ex: permissions), afficher not found
+  if (error) {
+    console.error("Failed to fetch product:", error);
+    notFound();
+  }
+  
+  if (isLoading) {
+    return <ProductDetailSkeleton />;
   }
 
+  // Si le produit n'est pas trouvé après le chargement
   if (!product) {
-    return notFound();
+    notFound();
   }
 
   const handleAddToCart = () => {

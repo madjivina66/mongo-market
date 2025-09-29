@@ -1,10 +1,11 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { doc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +14,11 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Label } from "@/components/ui/label";
-import { getUserProfile, updateUserProfileInDB } from '@/lib/firebase-data';
-import type { UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useDoc, useAuth, updateDocumentNonBlocking, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères.'),
@@ -77,11 +78,10 @@ function ProfileSkeleton() {
 }
 
 export default function ProfilePage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const firestore = useFirestore(); // Hook pour obtenir l'instance Firestore client
+  const firestore = useFirestore();
+  const { user } = useAuth();
   
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -89,55 +89,44 @@ export default function ProfilePage() {
       name: '',
       email: '',
       phone: '',
-      address: {
-        street: '',
-        city: '',
-        state: '',
-        zip: '',
-        country: '',
-      },
+      address: { street: '', city: '', state: '', zip: '', country: '' },
     },
   });
 
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!firestore) return;
-      setIsFetching(true);
-      try {
-        const profile = await getUserProfile(firestore);
-        if (profile) {
-          form.reset(profile);
-        } else {
-            console.log("No profile found. Displaying empty form to create a new one.");
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        toast({
-            title: "Erreur de chargement",
-            description: "Impossible de charger les données du profil. Vous pouvez essayer de remplir le formulaire pour en créer un nouveau.",
-            variant: "destructive"
-        });
-      } finally {
-        setIsFetching(false);
-      }
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'userProfiles', user.uid);
+  }, [firestore, user]);
+
+  const { data: profile, isLoading: isFetching } = useDoc<UserProfile>(userProfileRef);
+
+  // Mettre à jour le formulaire lorsque le profil est chargé ou que l'utilisateur change
+  useMemo(() => {
+    if (profile) {
+      form.reset(profile);
+    } else if (user) {
+      // Pré-remplir avec les infos de l'utilisateur si le profil n'existe pas
+      form.reset({
+        name: user.displayName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+        address: { street: '', city: '', state: '', zip: '', country: '' },
+      });
     }
-    fetchProfile();
-  }, [form, toast, firestore]);
+  }, [profile, user, form]);
+
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
-    setIsLoading(true);
-    if (!firestore) {
-        toast({ title: "Erreur", description: "La base de données n'est pas connectée.", variant: "destructive"});
-        setIsLoading(false);
+    if (!userProfileRef) {
+        toast({ title: "Erreur", description: "Utilisateur non connecté.", variant: "destructive"});
         return;
     }
+    setIsSaving(true);
 
     try {
-      const profileToSave: UserProfile = {
-        ...values,
-        id: "default-user-profile", // Dans une vraie app, cet id viendrait de l'utilisateur authentifié
-      };
-      await updateUserProfileInDB(firestore, profileToSave);
+      // Utilise `set` avec `merge` pour créer ou mettre à jour le document.
+      setDocumentNonBlocking(userProfileRef, values, { merge: true });
+      
       toast({
         title: "Profil sauvegardé",
         description: "Vos informations ont été sauvegardées avec succès.",
@@ -150,7 +139,8 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
+      form.reset(values); // Réinitialise l'état "dirty" du formulaire
     }
   }
   
@@ -260,8 +250,8 @@ export default function ProfilePage() {
 
               <Separator />
               
-              <Button type="submit" className="w-full" disabled={isLoading || !form.formState.isDirty}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" className="w-full" disabled={isSaving || !form.formState.isDirty}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sauvegarder les changements
               </Button>
             </CardContent>
