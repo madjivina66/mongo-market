@@ -14,9 +14,7 @@ import {
   PlusSquare,
   List,
 } from 'lucide-react';
-import { useAuth, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { useAuth } from '@/context/auth-context';
 
 import {
   SidebarMenu,
@@ -42,19 +40,12 @@ export function MainNav() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   const isAuthenticated = !!user && !user.isAnonymous;
-  const firestore = useFirestore();
 
-  // Récupérer le profil de l'utilisateur pour connaître son statut Pro
-  const userProfileRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'userProfiles', user.uid);
-  }, [firestore, user]);
+  // La logique dynamique qui charge le profil a été supprimée pour stabiliser l'application.
+  // Toutes les pages seront accessibles pour les utilisateurs connectés.
+  const isProUser = true; // Forcé à true pour désactiver la redirection
 
-  const { data: profile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
-
-  const isProUser = profile?.isPro ?? false;
-
-  if (loading || (isAuthenticated && isLoadingProfile)) {
+  if (loading) {
       return (
           <div className="p-4 space-y-2">
               {Array.from({length: 5}).map((_, i) => (
@@ -69,9 +60,8 @@ export function MainNav() {
       {links.map(link => {
         if (link.protected && !isAuthenticated) return null;
 
-        // Si le lien est pour les "Pro" et que l'utilisateur n'est pas pro,
-        // on le redirige vers la page d'abonnement.
-        const targetHref = link.isPro && !isProUser ? '/subscription' : link.href;
+        // La logique de redirection a été désactivée.
+        const targetHref = link.href;
         
         return (
             <SidebarMenuItem key={link.href}>
@@ -83,7 +73,8 @@ export function MainNav() {
                 >
                 <link.icon className="h-5 w-5 text-primary" />
                 <span>{link.label}</span>
-                {link.isPro && !isProUser && <Gem className="ml-auto h-4 w-4 text-yellow-500"/>}
+                {/* L'icône de gemme est maintenant purement visuelle */}
+                {link.isPro && <Gem className="ml-auto h-4 w-4 text-yellow-500"/>}
                 </SidebarMenuButton>
             </Link>
             </SidebarMenuItem>
