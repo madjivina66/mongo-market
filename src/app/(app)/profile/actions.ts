@@ -17,7 +17,7 @@ const profileSchema = z.object({
     city: z.string(),
     state: z.string(),
     zip: z.string(),
-    country: zstring(),
+    country: z.string(),
   }),
 });
 
