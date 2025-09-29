@@ -66,8 +66,8 @@ export function EditProductForm({ product }: EditProductFormProps) {
         title: "Produit modifié !",
         description: `Le produit "${values.name}" a été mis à jour.`,
       });
-      router.push('/admin/my-products'); // Rediriger vers la liste des produits
-      router.refresh(); // Forcer le rafraîchissement des données du serveur
+      router.push('/admin/my-products');
+      router.refresh();
     } catch (e: any) {
        toast({
         title: "Erreur lors de la modification",
@@ -166,7 +166,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionnez une image de démonstration" />
-                            </Trigger>
+                            </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                                 {PlaceHolderImages.map(img => (

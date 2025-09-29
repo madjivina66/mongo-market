@@ -174,7 +174,6 @@ export default function MyProductsPage() {
 
   const productsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    // Crée une requête qui filtre les produits par l'ID du vendeur (l'utilisateur connecté)
     return query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
   }, [firestore, user]);
 

@@ -26,7 +26,7 @@ export function AddProductForm() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const { user } = useAuth(); // Récupérer l'utilisateur pour le token
+  const { user } = useAuth();
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -49,25 +49,6 @@ export function AddProductForm() {
     
     setIsSaving(true);
     
-    // Crée une nouvelle fonction qui enveloppe l'action du serveur
-    // pour inclure le token d'authentification dans les en-têtes.
-    const authenticatedAddProduct = async (data: ProductFormData) => {
-      const token = await user.getIdToken();
-      const response = await fetch('/api/add-product', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      return response.json();
-    };
-
-    // Pour que l'action serveur puisse récupérer l'utilisateur, nous devons passer
-    // le token d'authentification. Le moyen le plus simple est de créer une route d'API
-    // qui appellera notre action serveur en interne.
-    
     try {
       const result = await addProduct(values);
       if (result.error) {
@@ -77,7 +58,6 @@ export function AddProductForm() {
         title: "Produit ajouté !",
         description: `Le produit "${values.name}" est maintenant en vente.`,
       });
-      // Rediriger vers la page "Mes Produits" que nous allons bientôt créer
       router.push(`/admin/my-products`);
     } catch (e: any) {
        toast({
