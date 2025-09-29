@@ -1,8 +1,17 @@
 
+'use client';
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check } from "lucide-react";
-import Link from "next/link";
+import { Check, Loader2 } from "lucide-react";
+import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import type { UserProfile } from "@/lib/types";
+import { upgradeToPro } from "./actions";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
 
 const featuresPro = [
   "Nombre de produits illimité",
@@ -12,12 +21,50 @@ const featuresPro = [
 ];
 
 const featuresFree = [
-    "Jusqu'à 3 produits",
+    "Jusqu'à 10 produits",
     "Gestion des commandes de base",
     "Profil de vendeur public",
 ];
 
 export default function SubscriptionPage() {
+    const { user } = useAuth();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const router = useRouter();
+    const [isUpgrading, setIsUpgrading] = useState(false);
+
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user) return null;
+        return doc(firestore, 'userProfiles', user.uid);
+    }, [firestore, user]);
+
+    const { data: profile } = useDoc<UserProfile>(userProfileRef);
+
+    const isPro = profile?.isPro ?? false;
+
+    const handleUpgrade = async () => {
+        setIsUpgrading(true);
+        try {
+            const result = await upgradeToPro();
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            toast({
+                title: "Félicitations !",
+                description: "Vous êtes maintenant un membre Pro.",
+            });
+            router.refresh();
+        } catch(e: any) {
+             toast({
+                title: "Erreur",
+                description: e.message || "Impossible de mettre à jour votre abonnement.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsUpgrading(false);
+        }
+    }
+
   return (
     <div className="mx-auto max-w-4xl">
         <header className="mb-8 text-center">
@@ -45,13 +92,13 @@ export default function SubscriptionPage() {
                             </li>
                         ))}
                     </ul>
-                     <Button variant="outline" className="w-full" disabled>
+                     <Button variant="outline" className="w-full" disabled={!isPro}>
                         Votre plan actuel
                     </Button>
                 </CardContent>
             </Card>
 
-            <Card className="border-2 border-primary shadow-lg">
+            <Card className={isPro ? "border-2 border-muted" : "border-2 border-primary shadow-lg"}>
                 <CardHeader>
                     <CardTitle className="font-headline">Plan Pro</CardTitle>
                     <CardDescription>Pour les commerçants sérieux qui veulent maximiser leur visibilité.</CardDescription>
@@ -66,14 +113,15 @@ export default function SubscriptionPage() {
                             </li>
                         ))}
                     </ul>
-                    <Button asChild className="w-full font-headline text-lg">
-                        <Link href="#">Passer à Pro</Link>
+                    <Button onClick={handleUpgrade} className="w-full font-headline text-lg" disabled={isPro || isUpgrading}>
+                        {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isPro ? "Vous êtes déjà Pro" : "Passer à Pro"}
                     </Button>
                 </CardContent>
             </Card>
         </div>
          <p className="mt-8 text-center text-xs text-muted-foreground">
-            Le paiement réel n'est pas encore implémenté. Cliquer sur "Passer à Pro" ne déclenchera pas de facturation.
+            Le paiement réel n'est pas encore implémenté. Cliquer sur "Passer à Pro" mettra à jour votre compte au statut Pro à des fins de démonstration.
         </p>
     </div>
   );

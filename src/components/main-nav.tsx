@@ -14,7 +14,10 @@ import {
   PlusSquare,
   List,
 } from 'lucide-react';
-import { useAuth } from '@/context/auth-context';
+import { useAuth, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -39,14 +42,24 @@ export function MainNav() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   const isAuthenticated = !!user && !user.isAnonymous;
-  
-  // Dans une vraie application, cet état viendrait des données de l'utilisateur
-  const isProUser = true; 
+  const firestore = useFirestore();
 
-  if (loading) {
+  // Récupérer le profil de l'utilisateur pour connaître son statut Pro
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'userProfiles', user.uid);
+  }, [firestore, user]);
+
+  const { data: profile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+
+  const isProUser = profile?.isPro ?? false;
+
+  if (loading || (isAuthenticated && isLoadingProfile)) {
       return (
           <div className="p-4 space-y-2">
-              {/* You can add skeleton loaders here */}
+              {Array.from({length: 5}).map((_, i) => (
+                   <SidebarMenuButton key={i} disabled className="w-full justify-start h-9 my-1" />
+              ))}
           </div>
       )
   }

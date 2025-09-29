@@ -31,6 +31,7 @@ const profileSchema = z.object({
     zip: z.string(),
     country: z.string(),
   }),
+  isPro: z.boolean().optional(),
 });
 
 function ProfileSkeleton() {
@@ -90,6 +91,7 @@ export default function ProfilePage() {
       email: '',
       phone: '',
       address: { street: '', city: '', state: '', zip: '', country: '' },
+      isPro: false,
     },
   });
 
@@ -111,6 +113,7 @@ export default function ProfilePage() {
         email: user.email || '',
         phone: user.phoneNumber || '',
         address: { street: '', city: '', state: '', zip: '', country: '' },
+        isPro: false,
       });
     }
   }, [profile, user, form]);

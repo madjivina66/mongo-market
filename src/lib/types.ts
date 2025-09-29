@@ -39,4 +39,5 @@ export type UserProfile = {
         type: string;
         details: string;
     }[];
+    isPro?: boolean; // Champ pour le statut de l'abonnement Pro
 };
