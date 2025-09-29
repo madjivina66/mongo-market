@@ -1,9 +1,11 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/cart-context';
 import { AuthProvider } from '@/context/auth-context';
 import { FirebaseClientProvider } from '@/firebase/client-provider'; // Importer le nouveau Provider
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'MongoMarket Mobile',
@@ -26,8 +28,9 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <AuthProvider>
               <CartProvider>
-              {children}
-              <Toaster />
+                <FirebaseErrorListener />
+                {children}
+                <Toaster />
               </CartProvider>
           </AuthProvider>
         </FirebaseClientProvider>
