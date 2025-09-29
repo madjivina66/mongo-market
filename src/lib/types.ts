@@ -9,6 +9,7 @@ export type Product = {
   category: ProductCategory;
   imageUrl: string;
   imageHint: string;
+  sellerId?: string; // Ajout du champ pour lier le produit au vendeur
 };
 
 export type Order = {

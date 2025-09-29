@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
 
 import { addProduct, productSchema, type ProductFormData } from "./actions";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -25,6 +26,7 @@ export function AddProductForm() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth(); // Récupérer l'utilisateur pour le token
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -36,23 +38,55 @@ export function AddProductForm() {
   });
 
   async function onSubmit(values: ProductFormData) {
-    setIsSaving(true);
-    const result = await addProduct(values);
-    setIsSaving(false);
-
-    if (result.error) {
+    if (!user) {
       toast({
-        title: "Erreur lors de l'ajout",
-        description: result.error,
+        title: "Non connecté",
+        description: "Vous devez être connecté pour ajouter un produit.",
         variant: "destructive",
       });
-    } else {
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    // Crée une nouvelle fonction qui enveloppe l'action du serveur
+    // pour inclure le token d'authentification dans les en-têtes.
+    const authenticatedAddProduct = async (data: ProductFormData) => {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/add-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    };
+
+    // Pour que l'action serveur puisse récupérer l'utilisateur, nous devons passer
+    // le token d'authentification. Le moyen le plus simple est de créer une route d'API
+    // qui appellera notre action serveur en interne.
+    
+    try {
+      const result = await addProduct(values);
+      if (result.error) {
+        throw new Error(result.error);
+      }
       toast({
         title: "Produit ajouté !",
         description: `Le produit "${values.name}" est maintenant en vente.`,
       });
-      // Rediriger vers la page du produit nouvellement créé
-      router.push(`/products/${result.data?.productId}`);
+      // Rediriger vers la page "Mes Produits" que nous allons bientôt créer
+      router.push(`/admin/my-products`);
+    } catch (e: any) {
+       toast({
+        title: "Erreur lors de l'ajout",
+        description: e.message || "Une erreur est survenue.",
+        variant: "destructive",
+      });
+    } finally {
+        setIsSaving(false);
     }
   }
 

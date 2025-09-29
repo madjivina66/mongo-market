@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useFirestore, useDoc, useAuth, updateDocumentNonBlocking, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
+import { useFirestore, useDoc, useAuth, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 
 

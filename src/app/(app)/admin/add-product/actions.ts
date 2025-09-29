@@ -5,6 +5,8 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
+import { headers } from "next/headers";
+import { getAuth } from "firebase-admin/auth";
 
 // Schéma de validation pour le formulaire de produit
 export const productSchema = z.object({
@@ -30,6 +32,24 @@ export async function addProduct(
   // Initialiser l'app admin Firebase pour accéder à Firestore côté serveur
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
+  const auth = getAuth(adminApp);
+
+  // Obtenir l'ID de l'utilisateur à partir du token d'authentification
+  const authorization = headers().get("Authorization");
+  let sellerId: string;
+
+  if (authorization?.startsWith("Bearer ")) {
+    const idToken = authorization.split("Bearer ")[1];
+    try {
+      const decodedToken = await auth.verifyIdToken(idToken);
+      sellerId = decodedToken.uid;
+    } catch (error) {
+      console.error("Erreur de vérification du token:", error);
+      return { error: "Authentification invalide. Impossible d'ajouter le produit." };
+    }
+  } else {
+    return { error: "Non autorisé. Token d'authentification manquant." };
+  }
   
   // Extraire l'URL et l'indice de l'image
   const [imageUrl, imageHint] = data.image.split('|');
@@ -42,10 +62,13 @@ export async function addProduct(
       category: data.category,
       imageUrl,
       imageHint,
+      sellerId, // Lier le produit au vendeur connecté
+      createdAt: new Date(),
     });
     
     // Invalider le cache pour la page des produits afin que la liste soit mise à jour
     revalidatePath("/products");
+    revalidatePath("/admin/my-products"); // Invalider aussi la future page "Mes produits"
 
     return { 
         data: {
