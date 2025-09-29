@@ -1,18 +1,23 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { collection, query, where } from 'firebase/firestore';
 import { useAuth, useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase'; 
 import type { Product } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
-import Link from 'next/link';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
+import { deleteProduct } from './actions';
+
 
 function MyProductsSkeleton() {
   return (
@@ -50,6 +55,11 @@ function MyProductsSkeleton() {
 }
 
 function MyProductsList({ products }: { products: WithId<Product>[] }) {
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<WithId<Product> | null>(null);
+    const { toast } = useToast();
+    const { user } = useAuth();
+    
     if (products.length === 0) {
         return (
             <div className="text-center py-16 border rounded-lg">
@@ -65,7 +75,34 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
         );
     }
 
+    const handleConfirmDelete = async () => {
+        if (!productToDelete || !user) return;
+
+        setIsDeleting(true);
+        try {
+            const result = await deleteProduct(productToDelete.id);
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            toast({
+                title: "Succès",
+                description: `Le produit "${productToDelete.name}" a été supprimé.`,
+            });
+        } catch (e: any) {
+            toast({
+                title: "Erreur",
+                description: e.message || "Impossible de supprimer le produit.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsDeleting(false);
+            setProductToDelete(null);
+        }
+    };
+
+
     return (
+        <>
         <Card>
           <CardContent className="pt-6">
             <Table>
@@ -99,7 +136,7 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
                     <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
                      <TableCell>
                         <Button size="sm" variant="outline" disabled>Modifier</Button>
-                        <Button size="sm" variant="destructive" className="ml-2" disabled>Supprimer</Button>
+                        <Button size="sm" variant="destructive" className="ml-2" onClick={() => setProductToDelete(product)}>Supprimer</Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -107,6 +144,25 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
             </Table>
           </CardContent>
         </Card>
+        
+        <AlertDialog open={!!productToDelete} onOpenChange={(isOpen) => !isOpen && setProductToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce produit ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Le produit &quot;{productToDelete?.name}&quot; sera définitivement supprimé.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                        {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Supprimer
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+        </>
     );
 }
 
