@@ -37,7 +37,7 @@ export function MainNav() {
   const isAuthenticated = !!user;
   
   // Dans une vraie application, cet état viendrait des données de l'utilisateur
-  const isProUser = false; 
+  const isProUser = true; 
 
   if (loading) {
       return (
