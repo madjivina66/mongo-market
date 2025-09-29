@@ -10,6 +10,7 @@ import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 export const metadata: Metadata = {
   title: 'MongoMarket Mobile',
   description: 'Votre guichet unique pour les produits frais.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({

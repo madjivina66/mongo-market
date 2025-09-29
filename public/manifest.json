@@ -1,0 +1,21 @@
+{
+  "name": "MongoMarket Mobile",
+  "short_name": "MongoMarket",
+  "description": "Votre guichet unique pour les produits frais.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f2",
+  "theme_color": "#5a6e56",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
