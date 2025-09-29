@@ -12,6 +12,7 @@ import {
   LogOut,
   Gem,
   PlusSquare,
+  List,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import {
@@ -24,6 +25,7 @@ const links = [
   { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
   { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
   { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare, protected: true },
+  { href: '/admin/my-products', label: 'Mes Produits', icon: List, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
   { href: '/subscription', label: 'Devenir Pro', icon: Gem, protected: true },
   { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true, isPro: true },
@@ -39,7 +41,7 @@ export function MainNav() {
   const isAuthenticated = !!user && !user.isAnonymous;
   
   // Dans une vraie application, cet état viendrait des données de l'utilisateur
-  const isProUser = false; 
+  const isProUser = true; 
 
   if (loading) {
       return (
