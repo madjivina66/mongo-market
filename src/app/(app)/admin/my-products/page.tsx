@@ -134,8 +134,10 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
                         <Badge variant="outline">{product.category}</Badge>
                     </TableCell>
                     <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
-                     <TableCell>
-                        <Button size="sm" variant="outline" disabled>Modifier</Button>
+                     <TableCell className="text-right">
+                        <Button size="sm" variant="outline" asChild>
+                            <Link href={`/admin/edit-product/${product.id}`}>Modifier</Link>
+                        </Button>
                         <Button size="sm" variant="destructive" className="ml-2" onClick={() => setProductToDelete(product)}>Supprimer</Button>
                     </TableCell>
                   </TableRow>
