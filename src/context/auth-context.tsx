@@ -23,22 +23,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!auth) {
+        // L'auth n'est pas encore prêt, on attend.
         setLoading(true);
         return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        // Tente une connexion anonyme, mais ne bloque pas le chargement
-        signInAnonymously(auth).catch((error) => {
-          console.error("Anonymous sign-in failed:", error);
-          setUser(null); // S'assure que l'utilisateur est null en cas d'échec
-        });
-      }
+      setUser(user); // Met à jour l'utilisateur qu'il soit réel, anonyme ou null
+      setLoading(false); // L'état d'auth est maintenant connu
+    }, (error) => {
+      console.error("Auth state change error:", error);
+      setUser(null);
       setLoading(false);
     });
+
+    // Si aucun utilisateur n'est détecté après un court délai, on tente une connexion anonyme.
+    // Cela gère le cas où l'utilisateur ouvre l'app pour la première fois.
+    if (!auth.currentUser) {
+        signInAnonymously(auth).catch((error) => {
+            console.error("Anonymous sign-in failed on initial load:", error);
+        });
+    }
 
     return () => unsubscribe();
   }, [auth]);

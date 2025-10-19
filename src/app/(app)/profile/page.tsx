@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -82,7 +82,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useAuth(); // Utiliser le hook useAuth pour obtenir l'utilisateur
+  const { user, loading: isAuthLoading } = useAuth();
   
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -100,14 +100,12 @@ export default function ProfilePage() {
     return doc(firestore, 'userProfiles', user.uid);
   }, [firestore, user]);
 
-  const { data: profile, isLoading: isFetching } = useDoc<UserProfile>(userProfileRef);
+  const { data: profile, isLoading: isFetchingProfile } = useDoc<UserProfile>(userProfileRef);
 
-  // Mettre à jour le formulaire lorsque le profil est chargé ou que l'utilisateur change
-  useMemo(() => {
+  useEffect(() => {
     if (profile) {
       form.reset(profile);
     } else if (user) {
-      // Pré-remplir avec les infos de l'utilisateur si le profil n'existe pas
       form.reset({
         name: user.displayName || '',
         email: user.email || '',
@@ -120,15 +118,15 @@ export default function ProfilePage() {
 
 
   async function onSubmit(values: z.infer<typeof profileSchema>) {
-    if (!userProfileRef) {
+    if (!user) { // Vérification directe de l'objet user
         toast({ title: "Erreur", description: "Utilisateur non connecté.", variant: "destructive"});
         return;
     }
     setIsSaving(true);
 
     try {
-      // Utilise `set` avec `merge` pour créer ou mettre à jour le document.
-      setDocumentNonBlocking(userProfileRef, values, { merge: true });
+      const ref = doc(firestore, 'userProfiles', user.uid);
+      setDocumentNonBlocking(ref, values, { merge: true });
       
       toast({
         title: "Profil sauvegardé",
@@ -143,11 +141,11 @@ export default function ProfilePage() {
       });
     } finally {
       setIsSaving(false);
-      form.reset(values); // Réinitialise l'état "dirty" du formulaire
+      form.reset(values);
     }
   }
   
-  if (isFetching) {
+  if (isAuthLoading || isFetchingProfile) {
       return (
         <div className="mx-auto max-w-2xl">
           <h1 className="mb-8 text-center font-headline text-4xl font-bold text-primary">Mon Profil</h1>
