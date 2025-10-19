@@ -4,7 +4,7 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { PlaceHolderImages } from './placeholder-images';
-import type { Product } from './types';
+import type { Product, Order } from './types';
 
 // Pour l'authentification en local, vous devez fournir vos identifiants de service.
 // NOTE: NE COMMETTEZ JAMAIS CE FICHIER AVEC VOS VRAIES CLÉS DE SERVICE DANS UN REPO PUBLIC.
@@ -24,7 +24,7 @@ if (getApps().length === 0) {
 
 const adminDb = getFirestore();
 
-const products: Omit<Product, 'id'>[] = [
+const products: Omit<Product, 'id' | 'sellerId'>[] = [
     { name: 'Tomates Fraîches', description: 'Grappe de tomates mûries au soleil.', price: 3.50, category: 'Légumes', imageUrl: PlaceHolderImages[0].imageUrl, imageHint: PlaceHolderImages[0].imageHint },
     { name: 'Carottes Bio', description: 'Botte de carottes fraîches et croquantes.', price: 2.20, category: 'Légumes', imageUrl: PlaceHolderImages[1].imageUrl, imageHint: PlaceHolderImages[1].imageHint },
     { name: 'Pommes Gala', description: 'Pommes sucrées et juteuses, parfaites pour une collation.', price: 4.10, category: 'Fruits', imageUrl: PlaceHolderImages[2].imageUrl, imageHint: PlaceHolderImages[2].imageHint },
@@ -39,26 +39,62 @@ const products: Omit<Product, 'id'>[] = [
     { name: 'Oranges de Sicile', description: 'Oranges juteuses et pleines de vitamine C.', price: 3.20, category: 'Fruits', imageUrl: PlaceHolderImages[11].imageUrl, imageHint: PlaceHolderImages[11].imageHint },
 ];
 
+
 async function seedDatabase() {
     console.log("Accès à la base de données Admin Firestore...");
     
     const productsCollection = adminDb.collection('products');
     const batch = adminDb.batch();
+    
+    // Un ID de vendeur de test. Dans une vraie application, il serait dynamique.
+    const testSellerId = "seller_test_id";
+    // Un ID d'utilisateur de test pour les commandes.
+    const testUserId = "user_test_id";
 
     console.log(`Préparation de ${products.length} produits pour l'ajout...`);
     
-    products.forEach((product) => {
-        const docRef = productsCollection.doc(); // Auto-generate ID
-        batch.set(docRef, product);
+    const productRefs = products.map((product) => {
+        const docRef = productsCollection.doc();
+        batch.set(docRef, { ...product, sellerId: testSellerId });
+        return { ref: docRef, data: product };
+    });
+
+    console.log("Ajout de commandes de test pour l'utilisateur de test...");
+    const orders: Omit<Order, 'id'>[] = [
+      {
+        userId: testUserId,
+        orderDate: new Date('2023-10-26T10:00:00Z').toISOString(),
+        totalAmount: 20.70,
+        status: 'Livrée',
+        orderItems: [
+          { productId: 'id_tomate', productName: 'Tomates Fraîches', quantity: 2, price: 3.50 },
+          { productId: 'id_poulet', productName: 'Filet de Poulet', quantity: 1, price: 8.50 },
+        ],
+      },
+      {
+        userId: testUserId,
+        orderDate: new Date('2023-10-28T14:30:00Z').toISOString(),
+        totalAmount: 8.20,
+        status: 'En traitement',
+        orderItems: [
+          { productId: 'id_pomme', productName: 'Pommes Gala', quantity: 2, price: 4.10 },
+        ],
+      },
+    ];
+
+    const userProfileRef = adminDb.collection('userProfiles').doc(testUserId);
+    orders.forEach(order => {
+        const orderRef = userProfileRef.collection('orders').doc();
+        batch.set(orderRef, order);
     });
 
     try {
-        console.log("Exécution du batch write...");
+        console.log("Exécution du batch write pour les produits et les commandes...");
         await batch.commit();
-        console.log(`✅ Succès ! ${products.length} produits ont été ajoutés à la collection 'products'.`);
-        console.log("Vous pouvez maintenant recharger votre application pour voir les données.");
+        console.log(`✅ Succès ! ${products.length} produits et ${orders.length} commandes ont été ajoutés.`);
+        console.log("Pour tester, connectez-vous avec un utilisateur dont l'ID est 'user_test_id'.");
     } catch (error) {
-        console.error("❌ Erreur lors de l'ajout des produits à la base de données :", error);
+        console.error("❌ Erreur lors de l'ajout des données à la base de données :", error);
         console.log("Vérifiez que vos identifiants d'administration (service account) sont correctement configurés si vous exécutez ce script localement.");
     }
 }

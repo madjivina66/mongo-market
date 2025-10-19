@@ -17,10 +17,16 @@ export type WithId<T> = T & { id: string };
 
 export type Order = {
   id: string;
-  date: string;
-  status: 'Livrée' | 'En traitement' | 'Expédiée';
-  total: number;
-  items: number;
+  userId: string;
+  orderDate: string; // Gardé en string pour la simplicité (format ISO)
+  totalAmount: number;
+  status: 'En attente' | 'En traitement' | 'Expédiée' | 'Livrée';
+  orderItems: { // Un tableau d'objets au lieu de simples IDs
+    productId: string;
+    productName: string; // Dénormalisé pour un affichage facile
+    quantity: number;
+    price: number;
+  }[];
 };
 
 export type UserProfile = {

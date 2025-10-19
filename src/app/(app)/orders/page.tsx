@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { useAuth, useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase'; 
 import type { Order } from '@/lib/types';
 
@@ -12,11 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShoppingCart } from 'lucide-react';
 
-const statusStyles = {
+const statusStyles: { [key: string]: string } = {
   'Livrée': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
   'En traitement': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
   'Expédiée': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+  'En attente': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
 };
+
 
 function OrdersSkeleton() {
   return (
@@ -31,7 +33,6 @@ function OrdersSkeleton() {
               <TableHead>ID de commande</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Statut</TableHead>
-              <TableHead>Articles</TableHead>
               <TableHead className="text-right">Total</TableHead>
             </TableRow>
           </TableHeader>
@@ -41,7 +42,6 @@ function OrdersSkeleton() {
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-28 rounded-full" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                 <TableCell className="text-right"><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
               </TableRow>
             ))}
@@ -74,20 +74,18 @@ function OrdersList({ orders }: { orders: WithId<Order>[] }) {
                   <TableHead>ID de commande</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead>Articles</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.map(order => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium text-primary">#{order.id}</TableCell>
-                    <TableCell>{order.date}</TableCell>
+                    <TableCell className="font-medium text-primary">#{order.id.substring(0, 7)}</TableCell>
+                    <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusStyles[order.status]}>{order.status}</Badge>
                     </TableCell>
-                    <TableCell>{order.items}</TableCell>
-                    <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">${order.totalAmount.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -102,11 +100,11 @@ export default function OrdersPage() {
   const firestore = useFirestore();
   const { user } = useAuth();
 
-  // Créez une requête pour les commandes de l'utilisateur actuel.
-  // useMemo garantit que la requête n'est pas recréée à chaque rendu.
+  // Créez une requête pour les commandes de l'utilisateur actuel, stockées dans une sous-collection.
   const ordersQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, 'orders'), where('userId', '==', user.uid));
+    // La requête pointe maintenant vers la sous-collection `orders` du profil de l'utilisateur.
+    return query(collection(firestore, 'userProfiles', user.uid, 'orders'));
   }, [firestore, user]);
 
   // Utilisez le hook useCollection pour écouter les données en temps réel.
