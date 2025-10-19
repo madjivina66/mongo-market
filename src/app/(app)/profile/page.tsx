@@ -82,7 +82,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Utiliser le hook useAuth pour obtenir l'utilisateur
   
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),

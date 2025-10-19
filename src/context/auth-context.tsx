@@ -2,8 +2,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously } from 'firebase/auth';
-import { useAuth as useFirebaseAuth } from '@/firebase'; // Importer le hook depuis la nouvelle structure
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously, Auth } from 'firebase/auth';
+import { useAuth as useFirebaseAuthHook } from '@/firebase'; 
 
 interface AuthContextType {
   user: User | null;
@@ -19,11 +19,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Utiliser le hook d'authentification fourni par la nouvelle structure Firebase
-  const auth = useFirebaseAuth();
+  const auth: Auth | null = useFirebaseAuthHook();
 
   useEffect(() => {
-    // S'assurer que l'instance d'authentification est prête avant de s'abonner
     if (!auth) {
         setLoading(true);
         return;
@@ -32,21 +30,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        setLoading(false);
       } else {
-        // Si aucun utilisateur n'est connecté, on tente une connexion anonyme
-        // pour permettre l'accès aux données publiques comme les produits.
+        // Tente une connexion anonyme, mais ne bloque pas le chargement
         signInAnonymously(auth).catch((error) => {
           console.error("Anonymous sign-in failed:", error);
-          // Même en cas d'échec, on arrête le chargement pour ne pas bloquer l'UI.
-          setUser(null);
-          setLoading(false);
+          setUser(null); // S'assure que l'utilisateur est null en cas d'échec
         });
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [auth]); // L'effet dépend maintenant de l'instance `auth` fournie par le hook
+  }, [auth]);
 
   const signup = (email: string, password: string) => {
     if (!auth) return Promise.reject(new Error("Firebase Auth not initialized"));
