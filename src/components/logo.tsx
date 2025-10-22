@@ -1,10 +1,11 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 
 export function Logo() {
   // Le nom du fichier a été normalisé pour éviter les problèmes avec les espaces.
-  // Assurez-vous que votre fichier dans le dossier /public s'appelle bien "logo-mongo-market-mza.png" (ou .jpg, .svg...).
-  const logoFileName = 'logo-mongo-market-mza.png'; 
+  // Assurez-vous que votre fichier dans le dossier /public s'appelle bien "logo-mongo-market-mza.jpg".
+  const logoFileName = 'logo-mongo-market-mza.jpg'; 
 
   return (
     <Link href="/products" className="group flex items-center gap-2" prefetch={false}>
