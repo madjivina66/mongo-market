@@ -32,7 +32,7 @@ export async function addProduct(
   if (!data.name || data.name.length < 3) {
     return { error: "Le nom doit contenir au moins 3 caractères." };
   }
-  if (!data.description || data.description.length < 10) {
+  if (!data.description || data.description.length < 3) {
     return { error: "La description doit être plus détaillée." };
   }
   if (!data.price || data.price <= 0) {
