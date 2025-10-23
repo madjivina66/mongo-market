@@ -44,8 +44,6 @@ export function EditProductForm({ product }: EditProductFormProps) {
   });
 
   useEffect(() => {
-    // Nettoyer l'URL de l'objet pour éviter les fuites de mémoire,
-    // mais seulement si ce n'est pas l'URL originale du produit.
     return () => {
       if (imagePreview && imagePreview !== product.imageUrl) {
         URL.revokeObjectURL(imagePreview);
@@ -66,8 +64,8 @@ export function EditProductForm({ product }: EditProductFormProps) {
     setIsSaving(true);
     
     try {
-      // Nous n'avons plus besoin de passer le token manuellement.
-      const result = await updateProduct(product.id, values);
+      const idToken = await user.getIdToken(true);
+      const result = await updateProduct(product.id, values, idToken);
 
       if (result.error) {
         throw new Error(result.error);

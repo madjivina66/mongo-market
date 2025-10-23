@@ -4,9 +4,8 @@
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
-import { headers } from "next/headers";
 import { getAuth } from "firebase-admin/auth";
-import type { WithId, Product } from "@/lib/types";
+import type { Product } from "@/lib/types";
 
 type ActionResult = {
   data?: { message: string; };
@@ -14,25 +13,22 @@ type ActionResult = {
 };
 
 // Action serveur pour supprimer un produit
-export async function deleteProduct(productId: string): Promise<ActionResult> {
+export async function deleteProduct(productId: string, idToken: string): Promise<ActionResult> {
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
 
-  const authorization = headers().get("Authorization");
   let sellerId: string;
 
-  if (authorization?.startsWith("Bearer ")) {
-    const idToken = authorization.split("Bearer ")[1];
-    try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      sellerId = decodedToken.uid;
-    } catch (error) {
-      console.error("Erreur de vérification du token:", error);
+  try {
+     if (!idToken) {
       return { error: "Authentification invalide. Impossible de supprimer le produit." };
     }
-  } else {
-    return { error: "Non autorisé. Token d'authentification manquant." };
+    const decodedToken = await auth.verifyIdToken(idToken);
+    sellerId = decodedToken.uid;
+  } catch (error) {
+    console.error("Erreur de vérification du token:", error);
+    return { error: "Authentification invalide. Impossible de supprimer le produit." };
   }
 
   try {

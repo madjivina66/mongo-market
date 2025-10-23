@@ -40,7 +40,6 @@ export function AddProductForm() {
   });
 
   useEffect(() => {
-    // Nettoyer l'URL de l'objet pour éviter les fuites de mémoire
     return () => {
       if (imagePreview) {
         URL.revokeObjectURL(imagePreview);
@@ -62,8 +61,9 @@ export function AddProductForm() {
     setIsSaving(true);
     
     try {
-      // Nous n'avons plus besoin de passer le token manuellement.
-      const result = await addProduct(values);
+      // On récupère un token frais juste avant de lancer l'action
+      const idToken = await user.getIdToken(true);
+      const result = await addProduct(values, idToken);
       
       if (result.error) {
         throw new Error(result.error);
@@ -111,7 +111,7 @@ export function AddProductForm() {
             <FormField
               control={form.control}
               name="description"
-              rules={{ required: "La description est requise." }}
+              rules={{ required: "La description est requise.", minLength: { value: 10, message: "La description doit contenir au moins 10 caractères." } }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
@@ -122,7 +122,7 @@ export function AddProductForm() {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage>{form.formState.errors.description?.message}</FormMessage>
                 </FormItem>
               )}
             />

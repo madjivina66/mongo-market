@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
 import { getAuth } from "firebase-admin/auth";
-import { headers } from "next/headers";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { ProductCategory } from "@/lib/types";
 
@@ -23,9 +22,10 @@ type ActionResult = {
   error?: string;
 };
 
-// Action serveur pour ajouter le produit à Firestore
+// L'action accepte maintenant le token comme argument
 export async function addProduct(
-  data: ProductFormData
+  data: ProductFormData,
+  idToken: string
 ): Promise<ActionResult> {
 
   // Validation manuelle des données côté serveur
@@ -46,15 +46,13 @@ export async function addProduct(
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
-  const authorization = headers().get("Authorization");
 
   let sellerId: string;
 
   try {
-    if (!authorization?.startsWith("Bearer ")) {
-      throw new Error("Non autorisé. Token d'authentification manquant.");
+     if (!idToken) {
+      return { error: "Authentification invalide. Impossible d'ajouter le produit." };
     }
-    const idToken = authorization.split("Bearer ")[1];
     const decodedToken = await auth.verifyIdToken(idToken);
     sellerId = decodedToken.uid;
   } catch (error) {
@@ -62,9 +60,6 @@ export async function addProduct(
     return { error: "Authentification invalide. Impossible d'ajouter le produit." };
   }
   
-  // Pour la démo, nous utilisons une image de substitution.
-  // Dans une vraie application, ici on enverrait l'image vers Firebase Storage
-  // et on récupérerait l'URL.
   const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
   const imageUrl = placeholderImage.imageUrl;
   const imageHint = placeholderImage.imageHint;
@@ -73,15 +68,14 @@ export async function addProduct(
     const docRef = await db.collection("products").add({
       name: data.name,
       description: data.description,
-      price: Number(data.price), // Assurer que le prix est un nombre
+      price: Number(data.price),
       category: data.category,
       imageUrl,
       imageHint,
-      sellerId, // Lier le produit au vendeur connecté
+      sellerId,
       createdAt: new Date(),
     });
     
-    // Invalider le cache pour la page des produits afin que la liste soit mise à jour
     revalidatePath("/products");
     revalidatePath("/admin/my-products");
 
