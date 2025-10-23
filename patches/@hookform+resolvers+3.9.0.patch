@@ -1,0 +1,62 @@
+diff --git a/node_modules/@hookform/resolvers/zod/dist/zod.js b/node_modules/@hookform/resolvers/zod/dist/zod.js
+index 7259f61..310c848 100644
+--- a/node_modules/@hookform/resolvers/zod/dist/zod.js
++++ b/node_modules/@hookform_resolvers/zod/dist/zod.js
+@@ -1,5 +1,6 @@
+ 'use strict';
+ 
++Object.defineProperty(exports, '__esModule', { value: true });
+ const appendErrors = (name, validateAllFieldCriteria, errors, type, message) => {
+     if (validateAllFieldCriteria) {
+         const error = errors[name];
+diff --git a/node_modules/@hookform/resolvers/zod/dist/zod.mjs b/node_modules/@hookform/resolvers/zod/dist/zod.mjs
+index 10a4714..a401b31 100644
+--- a/node_modules/@hookform/resolvers/zod/dist/zod.mjs
++++ b/node_modules/@hookform/resolvers/zod/dist/zod.mjs
+@@ -2,7 +2,10 @@
+     if (validateAllFieldCriteria) {
+         const error = errors[name];
+         if (error) {
+-            return { ...error, types: { ...error.types, [type]: message || true } };
++            return {
++                ...error,
++                types: { ...(error.types || {}), [type]: message || true },
++            };
+         }
+     }
+     return {
+@@ -10,7 +13,7 @@
+         type,
+         ...(validateAllFieldCriteria
+             ? {
+-                types: {
++                types: { 
+                     [type]: message || true,
+                 },
+             }
+@@ -22,7 +25,7 @@
+     return z.object(object).safeParse(values, {
+         ...resolverOptions,
+         abortEarly: false,
+-    });
++    }).error;
+ };
+ const zodResolver = (schema, schemaOptions, resolverOptions = {}) => async (values, _, options) => {
+     try {
+diff --git a/node_modules/@hookform/resolvers/zod/package.json b/node_modules/@hookform/resolvers/zod/package.json
+index 10a7238..c81525a 100644
+--- a/node_modules/@hookform/resolvers/zod/package.json
++++ b/node_modules/@hookform/resolvers/zod/package.json
+@@ -6,6 +6,9 @@
+   "keywords": [
+     "react-hook-form",
+     "resolvers",
++    "resolver",
+     "validation",
+     "zod"
+   ],
++  "main": "dist/zod.js",
+   "module": "dist/zod.mjs",
+   "types": "dist/zod.d.ts",
+   "sideEffects": false,
+
