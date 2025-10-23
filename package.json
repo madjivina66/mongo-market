@@ -14,8 +14,8 @@
     "seed:db": "tsx src/lib/seed-db.ts"
   },
   "dependencies": {
-    "@genkit-ai/googleai": "^1.14.1",
-    "@genkit-ai/next": "^1.14.1",
+    "@genkit-ai/googleai": "^1.19.1",
+    "@genkit-ai/next": "^1.19.1",
     "@hookform/resolvers": "3.3.4",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
@@ -46,7 +46,7 @@
     "firebase": "^10.12.2",
     "firebase-admin": "^12.1.1",
     "firebase-functions": "^5.0.1",
-    "genkit": "^1.14.1",
+    "genkit": "^1.19.1",
     "lucide-react": "^0.475.0",
     "next": "15.3.3",
     "patch-package": "^8.0.0",
@@ -56,14 +56,14 @@
     "react-hook-form": "7.49.3",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "3.22.4"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@headlessui/tailwindcss": "^0.2.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "genkit-cli": "^1.14.1",
+    "genkit-cli": "^1.19.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.16.2",
