@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload } from "lucide-react";
 import Image from "next/image";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 
-import { addProduct, productSchema, type ProductFormData } from "./actions";
+import { addProduct, type ProductFormData } from "./actions";
 import type { ProductCategory } from "@/lib/types";
 
 const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements'];
@@ -32,11 +31,11 @@ export function AddProductForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
       description: "",
       price: 0,
+      category: 'Légumes',
     },
   });
 
@@ -97,6 +96,7 @@ export function AddProductForm() {
             <FormField
               control={form.control}
               name="name"
+              rules={{ required: "Le nom du produit est requis." }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nom du produit</FormLabel>
@@ -111,6 +111,7 @@ export function AddProductForm() {
             <FormField
               control={form.control}
               name="description"
+              rules={{ required: "La description est requise." }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
@@ -130,6 +131,7 @@ export function AddProductForm() {
                  <FormField
                     control={form.control}
                     name="price"
+                    rules={{ required: "Le prix est requis.", min: { value: 0.01, message: "Le prix doit être positif."} }}
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
@@ -143,6 +145,7 @@ export function AddProductForm() {
                  <FormField
                     control={form.control}
                     name="category"
+                    rules={{ required: "La catégorie est requise."}}
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Catégorie</FormLabel>

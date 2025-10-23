@@ -1,24 +1,21 @@
 
 "use server";
 
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
-import { headers } from "next/headers";
 import { getAuth } from "firebase-admin/auth";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import type { ProductCategory } from "@/lib/types";
 
-// Schéma de validation pour le formulaire de produit
-export const productSchema = z.object({
-  name: z.string().min(3, "Le nom doit contenir au moins 3 caractères."),
-  description: z.string().min(10, "La description doit être plus détaillée."),
-  price: z.coerce.number().positive("Le prix doit être un nombre positif."),
-  category: z.enum(['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements']),
-  image: z.any().optional(), // On rend l'image optionnelle ici car on la gère différemment
-});
-
-export type ProductFormData = z.infer<typeof productSchema>;
+// Ce type définit la structure des données du formulaire
+export type ProductFormData = {
+  name: string;
+  description: string;
+  price: number;
+  category: ProductCategory;
+  image?: any;
+};
 
 type ActionResult = {
   data?: { message: string; productId: string; };
@@ -30,6 +27,21 @@ export async function addProduct(
   data: ProductFormData,
   idToken: string
 ): Promise<ActionResult> {
+
+  // Validation manuelle des données côté serveur
+  if (!data.name || data.name.length < 3) {
+    return { error: "Le nom doit contenir au moins 3 caractères." };
+  }
+  if (!data.description || data.description.length < 10) {
+    return { error: "La description doit être plus détaillée." };
+  }
+  if (!data.price || data.price <= 0) {
+    return { error: "Le prix doit être un nombre positif." };
+  }
+  if (!data.category) {
+    return { error: "La catégorie est requise." };
+  }
+
 
   // Initialiser l'app admin Firebase pour accéder à Firestore côté serveur
   const adminApp = await initializeAdminApp();
@@ -57,7 +69,7 @@ export async function addProduct(
     const docRef = await db.collection("products").add({
       name: data.name,
       description: data.description,
-      price: data.price,
+      price: Number(data.price), // Assurer que le prix est un nombre
       category: data.category,
       imageUrl,
       imageHint,
