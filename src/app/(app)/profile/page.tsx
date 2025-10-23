@@ -3,7 +3,6 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-const { zodResolver } = require("@hookform/resolvers/zod");
 import { z } from 'zod';
 import { doc } from 'firebase/firestore';
 
@@ -85,7 +84,7 @@ export default function ProfilePage() {
   const { user, loading: isAuthLoading } = useAuth();
   
   const form = useForm<z.infer<typeof profileSchema>>({
-    resolver: zodResolver(profileSchema),
+    resolver: require("@hookform/resolvers/zod").zodResolver(profileSchema),
     defaultValues: {
       name: '',
       email: '',

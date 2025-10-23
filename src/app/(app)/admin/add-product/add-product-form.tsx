@@ -4,7 +4,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-const { zodResolver } = require("@hookform/resolvers/zod");
 import { Loader2, Upload } from "lucide-react";
 import Image from "next/image";
 
@@ -32,7 +31,7 @@ export function AddProductForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+    resolver: require("@hookform/resolvers/zod").zodResolver(productSchema),
     defaultValues: {
       name: "",
       description: "",

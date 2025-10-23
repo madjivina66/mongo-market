@@ -1,8 +1,8 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-const { zodResolver } = require("@hookform/resolvers/zod");
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export function AdOptimizerForm() {
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: require("@hookform/resolvers/zod").zodResolver(formSchema),
     defaultValues: {
       customerPreferences: "",
       salesData: "",
