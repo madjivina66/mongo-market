@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload } from "lucide-react";
 import Image from "next/image";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +32,7 @@ export function AddProductForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ProductFormData>({
-    resolver: require("@hookform/resolvers/zod").zodResolver(productSchema),
+    resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
       description: "",

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,7 @@ export function SignupForm() {
   const { signup } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: require("@hookform/resolvers/zod").zodResolver(formSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
       email: '',
