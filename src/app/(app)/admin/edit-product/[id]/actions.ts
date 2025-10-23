@@ -3,19 +3,19 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore } from- "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
-import { headers } from "next/headers";
 import { getAuth } from "firebase-admin/auth";
 import type { Product } from "@/lib/types";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-// Le schéma de validation est le même que pour l'ajout
+// Le schéma de validation est mis à jour pour les nouvelles catégories
 export const productSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères."),
   description: z.string().min(10, "La description doit être plus détaillée."),
   price: z.coerce.number().positive("Le prix doit être un nombre positif."),
-  category: z.enum(['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices']),
-  image: z.string().min(1, "Veuillez sélectionner une image."),
+  category: z.enum(['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements']),
+  image: z.any().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
@@ -28,29 +28,22 @@ type ActionResult = {
 // Action serveur pour mettre à jour le produit
 export async function updateProduct(
   productId: string,
-  data: ProductFormData
+  data: ProductFormData,
+  idToken: string
 ): Promise<ActionResult> {
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
 
-  const authorization = headers().get("Authorization");
   let sellerId: string;
 
-  if (authorization?.startsWith("Bearer ")) {
-    const idToken = authorization.split("Bearer ")[1];
-    try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      sellerId = decodedToken.uid;
-    } catch (error) {
-      console.error("Erreur de vérification du token:", error);
-      return { error: "Authentification invalide." };
-    }
-  } else {
-    return { error: "Non autorisé." };
+  try {
+    const decodedToken = await auth.verifyIdToken(idToken);
+    sellerId = decodedToken.uid;
+  } catch (error) {
+    console.error("Erreur de vérification du token:", error);
+    return { error: "Authentification invalide." };
   }
-
-  const [imageUrl, imageHint] = data.image.split('|');
 
   try {
     const productRef = db.collection("products").doc(productId);
@@ -62,22 +55,26 @@ export async function updateProduct(
     
     const productData = productDoc.data() as Product;
 
-    // Vérification de sécurité cruciale : l'utilisateur est-il le propriétaire ?
     if (productData.sellerId !== sellerId) {
       return { error: "Action non autorisée. Vous n'êtes pas le propriétaire de ce produit." };
     }
-
-    // Mise à jour du document
-    await productRef.update({
+    
+    const updateData: Partial<Product> = {
       name: data.name,
       description: data.description,
       price: data.price,
       category: data.category,
-      imageUrl,
-      imageHint,
-    });
+    };
 
-    // Invalider les caches pour rafraîchir les données
+    // Si une nouvelle image est fournie (même en démo), on la change. Sinon, on garde l'ancienne.
+    if (data.image) {
+        const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+        updateData.imageUrl = placeholderImage.imageUrl;
+        updateData.imageHint = placeholderImage.imageHint;
+    }
+
+    await productRef.update(updateData);
+
     revalidatePath(`/products/${productId}`);
     revalidatePath("/admin/my-products");
 

@@ -1,5 +1,5 @@
 
-export type ProductCategory = 'Légumes' | 'Fruits' | 'Viande' | 'Produits laitiers' | 'Épices';
+export type ProductCategory = 'Légumes' | 'Fruits' | 'Viande' | 'Produits laitiers' | 'Épices' | 'Électronique' | 'Vêtements';
 
 export type Product = {
   id: string;

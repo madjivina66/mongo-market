@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +17,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 
 import { updateProduct, productSchema, type ProductFormData } from "./actions";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { ProductCategory, WithId, Product } from "@/lib/types";
 
-const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices'];
+const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements'];
 
 interface EditProductFormProps {
     product: WithId<Product>;
@@ -31,6 +30,8 @@ export function EditProductForm({ product }: EditProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("");
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -39,7 +40,6 @@ export function EditProductForm({ product }: EditProductFormProps) {
         description: product.description,
         price: product.price,
         category: product.category,
-        image: `${product.imageUrl}|${product.imageHint}`,
     },
   });
 
@@ -56,7 +56,8 @@ export function EditProductForm({ product }: EditProductFormProps) {
     setIsSaving(true);
     
     try {
-      const result = await updateProduct(product.id, values);
+      const idToken = await user.getIdToken();
+      const result = await updateProduct(product.id, values, idToken);
 
       if (result.error) {
         throw new Error(result.error);
@@ -156,25 +157,41 @@ export function EditProductForm({ product }: EditProductFormProps) {
                     )}
                 />
             </div>
-             <FormField
+            <FormField
                 control={form.control}
                 name="image"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Image du produit</FormLabel>
-                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Sélectionnez une image de démonstration" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {PlaceHolderImages.map(img => (
-                                    <SelectItem key={img.id} value={`${img.imageUrl}|${img.imageHint}`}>{img.description}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <FormLabel>Image du produit (optionnel)</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Changer l'image
+                                </Button>
+                                <Input 
+                                    type="file"
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            field.onChange(file);
+                                            setFileName(file.name);
+                                        }
+                                    }}
+                                />
+                                {fileName && <span className="ml-4 text-sm text-muted-foreground">{fileName}</span>}
+                            </div>
+                        </FormControl>
                         <FormMessage />
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Si vous ne sélectionnez pas de nouvelle image, l'ancienne sera conservée. Sinon, une image de substitution sera utilisée pour la démo.
+                        </p>
                     </FormItem>
                 )}
             />

@@ -7,14 +7,15 @@ import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
 import { headers } from "next/headers";
 import { getAuth } from "firebase-admin/auth";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 // Schéma de validation pour le formulaire de produit
 export const productSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères."),
   description: z.string().min(10, "La description doit être plus détaillée."),
   price: z.coerce.number().positive("Le prix doit être un nombre positif."),
-  category: z.enum(['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices']),
-  image: z.string().min(1, "Veuillez sélectionner une image."),
+  category: z.enum(['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements']),
+  image: z.any().optional(), // On rend l'image optionnelle ici car on la gère différemment
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
@@ -26,7 +27,8 @@ type ActionResult = {
 
 // Action serveur pour ajouter le produit à Firestore
 export async function addProduct(
-  data: ProductFormData
+  data: ProductFormData,
+  idToken: string
 ): Promise<ActionResult> {
 
   // Initialiser l'app admin Firebase pour accéder à Firestore côté serveur
@@ -34,25 +36,22 @@ export async function addProduct(
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
 
-  // Obtenir l'ID de l'utilisateur à partir du token d'authentification
-  const authorization = headers().get("Authorization");
   let sellerId: string;
 
-  if (authorization?.startsWith("Bearer ")) {
-    const idToken = authorization.split("Bearer ")[1];
-    try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      sellerId = decodedToken.uid;
-    } catch (error) {
-      console.error("Erreur de vérification du token:", error);
-      return { error: "Authentification invalide. Impossible d'ajouter le produit." };
-    }
-  } else {
-    return { error: "Non autorisé. Token d'authentification manquant." };
+  try {
+    const decodedToken = await auth.verifyIdToken(idToken);
+    sellerId = decodedToken.uid;
+  } catch (error) {
+    console.error("Erreur de vérification du token:", error);
+    return { error: "Authentification invalide. Impossible d'ajouter le produit." };
   }
   
-  // Extraire l'URL et l'indice de l'image
-  const [imageUrl, imageHint] = data.image.split('|');
+  // Pour la démo, nous utilisons une image de substitution.
+  // Dans une vraie application, ici on enverrait l'image vers Firebase Storage
+  // et on récupérerait l'URL.
+  const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+  const imageUrl = placeholderImage.imageUrl;
+  const imageHint = placeholderImage.imageHint;
 
   try {
     const docRef = await db.collection("products").add({
@@ -68,7 +67,7 @@ export async function addProduct(
     
     // Invalider le cache pour la page des produits afin que la liste soit mise à jour
     revalidatePath("/products");
-    revalidatePath("/admin/my-products"); // Invalider aussi la future page "Mes produits"
+    revalidatePath("/admin/my-products");
 
     return { 
         data: {
