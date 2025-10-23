@@ -43,9 +43,15 @@ export default function SubscriptionPage() {
     const isPro = profile?.isPro ?? false;
 
     const handleUpgrade = async () => {
+        if (!user) {
+            toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive" });
+            return;
+        }
+
         setIsUpgrading(true);
         try {
-            const result = await upgradeToPro();
+            const idToken = await user.getIdToken(true);
+            const result = await upgradeToPro(idToken);
             if (result.error) {
                 throw new Error(result.error);
             }

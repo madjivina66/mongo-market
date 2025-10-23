@@ -4,7 +4,6 @@
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
-import { headers } from "next/headers";
 import { getAuth } from "firebase-admin/auth";
 
 type ActionResult = {
@@ -13,25 +12,22 @@ type ActionResult = {
 };
 
 // Action pour mettre à jour le statut de l'utilisateur vers "Pro"
-export async function upgradeToPro(): Promise<ActionResult> {
+export async function upgradeToPro(idToken: string): Promise<ActionResult> {
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
 
-  const authorization = headers().get("Authorization");
   let userId: string;
 
-  if (authorization?.startsWith("Bearer ")) {
-    const idToken = authorization.split("Bearer ")[1];
-    try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      userId = decodedToken.uid;
-    } catch (error) {
-      console.error("Erreur de vérification du token:", error);
+  try {
+    if (!idToken) {
       return { error: "Authentification invalide." };
     }
-  } else {
-    return { error: "Non autorisé." };
+    const decodedToken = await auth.verifyIdToken(idToken);
+    userId = decodedToken.uid;
+  } catch (error) {
+    console.error("Erreur de vérification du token:", error);
+    return { error: "Authentification invalide." };
   }
 
   try {
