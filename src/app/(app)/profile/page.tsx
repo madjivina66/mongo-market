@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+const { zodResolver } = require("@hookform/resolvers/zod");
 import { z } from 'zod';
 import { doc } from 'firebase/firestore';
 

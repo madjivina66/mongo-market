@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
+const { zodResolver } = require("@hookform/resolvers/zod");
 import { Loader2, Upload } from "lucide-react";
 import Image from "next/image";
 
