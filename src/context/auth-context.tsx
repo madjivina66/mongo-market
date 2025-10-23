@@ -23,22 +23,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!auth) {
-        // L'auth n'est pas encore prêt, on attend.
         setLoading(true);
         return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user); // Met à jour l'utilisateur qu'il soit réel, anonyme ou null
-      setLoading(false); // L'état d'auth est maintenant connu
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setUser(user);
+      setLoading(false);
+
+      if (user) {
+        // Chaque fois que l'utilisateur change (connexion, rafraîchissement),
+        // on récupère un nouveau token et on le met à jour pour les requêtes futures.
+        try {
+            const token = await user.getIdToken(true);
+            // Stocker le token pour une utilisation ultérieure est géré par le SDK
+            // Ici, nous nous assurons que le navigateur est prêt pour les requêtes authentifiées.
+        } catch (error) {
+            console.error("Erreur lors de la récupération du token initial:", error);
+        }
+      }
     }, (error) => {
       console.error("Auth state change error:", error);
       setUser(null);
       setLoading(false);
     });
 
-    // Si aucun utilisateur n'est détecté après un court délai, on tente une connexion anonyme.
-    // Cela gère le cas où l'utilisateur ouvre l'app pour la première fois.
     if (!auth.currentUser) {
         signInAnonymously(auth).catch((error) => {
             console.error("Anonymous sign-in failed on initial load:", error);

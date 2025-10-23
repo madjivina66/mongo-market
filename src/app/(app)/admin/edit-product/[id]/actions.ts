@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
 import { getAuth } from "firebase-admin/auth";
+import { headers } from "next/headers";
 import type { Product, ProductCategory } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
@@ -25,8 +26,7 @@ type ActionResult = {
 // Action serveur pour mettre à jour le produit
 export async function updateProduct(
   productId: string,
-  data: ProductFormData,
-  idToken: string
+  data: ProductFormData
 ): Promise<ActionResult> {
   // Validation manuelle des données côté serveur
   if (!data.name || data.name.length < 3) {
@@ -45,10 +45,15 @@ export async function updateProduct(
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
+  const authorization = headers().get("Authorization");
 
   let sellerId: string;
 
   try {
+     if (!authorization?.startsWith("Bearer ")) {
+      throw new Error("Non autorisé. Token d'authentification manquant.");
+    }
+    const idToken = authorization.split("Bearer ")[1];
     const decodedToken = await auth.verifyIdToken(idToken);
     sellerId = decodedToken.uid;
   } catch (error) {

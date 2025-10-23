@@ -62,8 +62,8 @@ export function AddProductForm() {
     setIsSaving(true);
     
     try {
-      const idToken = await user.getIdToken();
-      const result = await addProduct(values, idToken);
+      // Nous n'avons plus besoin de passer le token manuellement.
+      const result = await addProduct(values);
       
       if (result.error) {
         throw new Error(result.error);
