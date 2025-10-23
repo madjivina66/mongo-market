@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Upload } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(product.imageUrl);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -42,6 +44,16 @@ export function EditProductForm({ product }: EditProductFormProps) {
         category: product.category,
     },
   });
+
+  useEffect(() => {
+    // Nettoyer l'URL de l'objet pour éviter les fuites de mémoire,
+    // mais seulement si ce n'est pas l'URL originale du produit.
+    return () => {
+      if (imagePreview && imagePreview !== product.imageUrl) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview, product.imageUrl]);
 
   async function onSubmit(values: ProductFormData) {
     if (!user) {
@@ -175,6 +187,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
                                 </Button>
                                 <Input 
                                     type="file"
+                                    accept="image/*"
                                     className="hidden"
                                     ref={fileInputRef}
                                     onChange={(e) => {
@@ -182,12 +195,28 @@ export function EditProductForm({ product }: EditProductFormProps) {
                                         if (file) {
                                             field.onChange(file);
                                             setFileName(file.name);
+                                            if (imagePreview && imagePreview !== product.imageUrl) {
+                                              URL.revokeObjectURL(imagePreview);
+                                            }
+                                            setImagePreview(URL.createObjectURL(file));
                                         }
                                     }}
                                 />
                                 {fileName && <span className="ml-4 text-sm text-muted-foreground">{fileName}</span>}
                             </div>
                         </FormControl>
+                        {imagePreview && (
+                            <div className="mt-4">
+                                <p className="text-sm font-medium">Aperçu :</p>
+                                <Image 
+                                    src={imagePreview} 
+                                    alt="Aperçu de l'image" 
+                                    width={200}
+                                    height={200}
+                                    className="mt-2 rounded-md object-contain border"
+                                />
+                            </div>
+                        )}
                         <FormMessage />
                         <p className="text-xs text-muted-foreground mt-2">
                             Si vous ne sélectionnez pas de nouvelle image, l'ancienne sera conservée. Sinon, une image de substitution sera utilisée pour la démo.

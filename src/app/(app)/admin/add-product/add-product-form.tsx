@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Upload } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export function AddProductForm() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -37,6 +39,16 @@ export function AddProductForm() {
       price: 0,
     },
   });
+
+  useEffect(() => {
+    // Nettoyer l'URL de l'objet pour éviter les fuites de mémoire
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
 
   async function onSubmit(values: ProductFormData) {
     if (!user) {
@@ -169,6 +181,7 @@ export function AddProductForm() {
                                 </Button>
                                 <Input 
                                     type="file"
+                                    accept="image/*"
                                     className="hidden"
                                     ref={fileInputRef}
                                     onChange={(e) => {
@@ -176,12 +189,28 @@ export function AddProductForm() {
                                         if (file) {
                                             field.onChange(file);
                                             setFileName(file.name);
+                                            if (imagePreview) {
+                                              URL.revokeObjectURL(imagePreview);
+                                            }
+                                            setImagePreview(URL.createObjectURL(file));
                                         }
                                     }}
                                 />
                                 {fileName && <span className="ml-4 text-sm text-muted-foreground">{fileName}</span>}
                             </div>
                         </FormControl>
+                         {imagePreview && (
+                            <div className="mt-4">
+                                <p className="text-sm font-medium">Aperçu :</p>
+                                <Image 
+                                    src={imagePreview} 
+                                    alt="Aperçu de l'image" 
+                                    width={200}
+                                    height={200}
+                                    className="mt-2 rounded-md object-contain border"
+                                />
+                            </div>
+                        )}
                         <FormMessage />
                         <p className="text-xs text-muted-foreground mt-2">
                             Note: Le téléversement de fichier n'est pas encore fonctionnel. Une image de substitution sera utilisée.
