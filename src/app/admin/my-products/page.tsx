@@ -80,7 +80,8 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
 
         setIsDeleting(true);
         try {
-            const result = await deleteProduct(productToDelete.id);
+            const idToken = await user.getIdToken(true);
+            const result = await deleteProduct(productToDelete.id, idToken);
             if (result.error) {
                 throw new Error(result.error);
             }
