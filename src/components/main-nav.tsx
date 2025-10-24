@@ -13,6 +13,7 @@ import {
   Gem,
   PlusSquare,
   List,
+  Radio,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
@@ -25,6 +26,7 @@ import {
 const links = [
   { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
   { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
+  { href: '/live', label: 'Live', icon: Radio, protected: true },
   { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare, protected: true },
   { href: '/admin/my-products', label: 'Mes Produits', icon: List, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
