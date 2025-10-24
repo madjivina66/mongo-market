@@ -1,4 +1,5 @@
 
+
 export type ProductCategory = 'Légumes' | 'Fruits' | 'Viande' | 'Produits laitiers' | 'Épices' | 'Électronique' | 'Vêtements';
 
 export type Product = {
@@ -47,3 +48,11 @@ export type UserProfile = {
     }[];
     isPro?: boolean; // Champ pour le statut de l'abonnement Pro
 };
+
+export interface ChatMessage {
+  id?: string;
+  senderName: string;
+  senderId: string;
+  text: string;
+  timestamp: any; // Utiliser le serverTimestamp de Firestore
+}
