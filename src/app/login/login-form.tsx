@@ -69,7 +69,7 @@ export function LoginForm() {
     } catch (error: any) {
       let description = `Une erreur est survenue : ${error.code || error.message}`;
       if (error.code === 'auth/operation-not-allowed') {
-        description = "La connexion Google n'est pas activée dans votre console Firebase.";
+        description = "La connexion Google n'est pas activée. Veuillez contacter le support.";
       }
       toast({
         title: 'Erreur de connexion Google',

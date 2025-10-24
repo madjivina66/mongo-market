@@ -51,13 +51,13 @@ export async function addProduct(
 
   try {
      if (!idToken) {
-      return { error: "Authentification invalide. Impossible d'ajouter le produit." };
+      return { error: "Authentification invalide. Jeton manquant." };
     }
     const decodedToken = await auth.verifyIdToken(idToken);
     sellerId = decodedToken.uid;
   } catch (error) {
     console.error("Erreur de vérification du token:", error);
-    return { error: "Authentification invalide. Impossible d'ajouter le produit." };
+    return { error: "Authentification invalide. Impossible de vérifier l'utilisateur." };
   }
   
   const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
