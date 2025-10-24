@@ -1,41 +1,14 @@
+import AppLayout from './(app)/layout';
+import AuthLayout from './(auth)/layout';
+import { usePathname } from 'next/navigation';
 
-import type { Metadata } from 'next';
-import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
-import { CartProvider } from '@/context/cart-context';
-import { AuthProvider } from '@/context/auth-context';
-import { FirebaseClientProvider } from '@/firebase/client-provider'; // Importer le nouveau Provider
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isAuthRoute = ['/login', '/signup'].includes(pathname);
 
-export const metadata: Metadata = {
-  title: 'MongoMarket Mobile',
-  description: 'Votre guichet unique pour les produits frais.',
-  manifest: '/manifest.json',
-};
+    if (isAuthRoute) {
+        return <AuthLayout>{children}</AuthLayout>;
+    }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="fr" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased animated-background">
-        <FirebaseClientProvider>
-          <AuthProvider>
-              <CartProvider>
-                <FirebaseErrorListener />
-                {children}
-                <Toaster />
-              </CartProvider>
-          </AuthProvider>
-        </FirebaseClientProvider>
-      </body>
-    </html>
-  );
+    return <AppLayout>{children}</AppLayout>;
 }

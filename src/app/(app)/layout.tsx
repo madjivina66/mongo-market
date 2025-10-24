@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
+import { AuthProvider, useAuth } from '@/context/auth-context';
 import { Header } from '@/components/header';
 import { Logo } from '@/components/logo';
 import { MainNav } from '@/components/main-nav';
@@ -15,6 +15,10 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CartProvider } from '@/context/cart-context';
+import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 function AppLoading() {
     return (
@@ -33,8 +37,7 @@ function AppLoading() {
     )
 }
 
-
-export default function AppLayout({
+function ProtectedAppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -43,35 +46,22 @@ export default function AppLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Détermine si une route est protégée (commence par /admin, ou est une page personnelle)
   const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription'].includes(pathname);
 
   useEffect(() => {
-    // Si l'authentification est en cours, ne rien faire.
     if (loading) {
       return;
     }
 
-    // Si on est sur une route protégée et que l'utilisateur n'est pas connecté
-    // (ni en tant qu'utilisateur réel, ni en tant qu'anonyme), on redirige vers /login.
     if (isProtectedRoute && (!user || user.isAnonymous)) {
       router.push('/login');
     }
-  // J'ai enlevé la logique complexe qui causait des problèmes.
-  // La vérification se base maintenant uniquement sur l'état de connexion.
-  }, [user, loading, router, isProtectedRoute]);
+  }, [user, loading, router, isProtectedRoute, pathname]);
 
-  // Affiche un écran de chargement pendant la vérification de l'authentification
-  if (loading) {
-    return <AppLoading />;
-  }
-  
-  // Si on est sur une route protégée sans utilisateur valide, on affiche le chargement pour éviter un flash de contenu
-  if (isProtectedRoute && (!user || user.isAnonymous)) {
+  if (loading || (isProtectedRoute && (!user || user.isAnonymous))) {
     return <AppLoading />;
   }
 
-  // Dans tous les autres cas (routes publiques ou routes protégées avec un utilisateur valide), on affiche le contenu.
   return (
       <SidebarProvider>
       <Sidebar>
@@ -90,4 +80,32 @@ export default function AppLayout({
       </SidebarInset>
       </SidebarProvider>
   );
+}
+
+
+export default function AppLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+    return (
+        <html lang="fr" suppressHydrationWarning>
+            <head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
+            </head>
+            <body className="font-body antialiased animated-background">
+                <FirebaseClientProvider>
+                    <AuthProvider>
+                        <CartProvider>
+                            <FirebaseErrorListener />
+                            <ProtectedAppLayout>{children}</ProtectedAppLayout>
+                            <Toaster />
+                        </CartProvider>
+                    </AuthProvider>
+                </FirebaseClientProvider>
+            </body>
+        </html>
+    )
 }
