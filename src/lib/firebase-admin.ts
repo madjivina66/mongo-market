@@ -1,7 +1,7 @@
 
 // Ce fichier est destiné UNIQUEMENT au côté serveur (Server Actions, API Routes).
 // NE PAS l'importer dans des composants client.
-import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 
 // Cette fonction garantit que l'application admin est initialisée une seule fois (modèle singleton).
 export async function initializeAdminApp(): Promise<App> {
@@ -12,17 +12,8 @@ export async function initializeAdminApp(): Promise<App> {
     return adminApp;
   }
 
-  // Les identifiants de service sont passés via une variable d'environnement
-  // C'est la méthode sécurisée pour fournir des informations sensibles au serveur.
-  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-  if (!serviceAccountString) {
-    throw new Error('La variable d\'environnement FIREBASE_SERVICE_ACCOUNT_KEY n\'est pas définie. Impossible d\'initialiser le SDK Admin.');
-  }
-  
-  const serviceAccount = JSON.parse(serviceAccountString);
-
-  return initializeApp({
-    credential: cert(serviceAccount),
-  }, 'firebase-admin-app');
+  // Dans un environnement géré comme Firebase App Hosting, le SDK Admin
+  // peut être initialisé sans aucun argument. Il détectera automatiquement
+  // les "Application Default Credentials" de l'environnement.
+  return initializeApp({}, 'firebase-admin-app');
 }
