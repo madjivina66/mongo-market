@@ -51,6 +51,7 @@ export async function deleteProduct(productId: string, idToken: string): Promise
     // Invalider les caches pour mettre à jour les listes de produits
     revalidatePath("/products");
     revalidatePath("/admin/my-products");
+    revalidatePath("/my-products");
 
     return {
       data: {
