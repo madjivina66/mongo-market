@@ -1,6 +1,8 @@
+
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ShoppingCartButton } from './shopping-cart';
 import { Logo } from './logo';
+import { UserNav } from './user-nav';
 
 export function Header() {
   return (
@@ -14,7 +16,10 @@ export function Header() {
       <div className="md:hidden">
         <Logo />
       </div>
-      <ShoppingCartButton />
+      <div className="flex items-center gap-4">
+        <ShoppingCartButton />
+        <UserNav />
+      </div>
     </header>
   );
 }

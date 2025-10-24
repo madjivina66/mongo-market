@@ -16,11 +16,16 @@ import {
   Radio,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 
 import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSkeleton
 } from '@/components/ui/sidebar';
 
 const links = [
@@ -31,7 +36,10 @@ const links = [
   { href: '/admin/my-products', label: 'Mes Produits', icon: List, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
   { href: '/subscription', label: 'Devenir Pro', icon: Gem, protected: true },
-  { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true, isPro: true },
+];
+
+const proLinks = [
+    { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true, isPro: true },
 ];
 
 const linksUnauthenticated = [
@@ -42,69 +50,57 @@ export function MainNav() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
   const isAuthenticated = !!user && !user.isAnonymous;
+  const firestore = useFirestore();
 
-  // La logique dynamique qui charge le profil a été supprimée pour stabiliser l'application.
-  // Toutes les pages seront accessibles pour les utilisateurs connectés.
-  const isProUser = true; // Forcé à true pour désactiver la redirection
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'userProfiles', user.uid);
+  }, [firestore, user]);
+
+  const { data: profile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
+
+  const isProUser = profile?.isPro ?? false;
 
   if (loading) {
       return (
-          <div className="p-4 space-y-2">
+          <div className="p-2">
               {Array.from({length: 5}).map((_, i) => (
-                   <SidebarMenuButton key={i} disabled className="w-full justify-start h-9 my-1" />
+                   <SidebarMenuSkeleton key={i} />
               ))}
           </div>
       )
   }
 
+  const allLinks = isAuthenticated ? [...links, ...(isProUser ? proLinks : [])] : linksUnauthenticated;
+
   return (
     <SidebarMenu>
-      {links.map(link => {
-        if (link.protected && !isAuthenticated) return null;
-
-        // La logique de redirection a été désactivée.
-        const targetHref = link.href;
-        
-        return (
-            <SidebarMenuItem key={link.href}>
-            <Link href={targetHref} className="w-full">
-                <SidebarMenuButton
-                isActive={pathname === link.href}
-                className="w-full justify-start"
-                tooltip={link.label}
-                >
-                <link.icon className="h-5 w-5 text-primary" />
-                <span>{link.label}</span>
-                {/* L'icône de gemme est maintenant purement visuelle */}
-                {link.isPro && <Gem className="ml-auto h-4 w-4 text-yellow-500"/>}
-                </SidebarMenuButton>
-            </Link>
-            </SidebarMenuItem>
-        );
-      })}
-      {!isAuthenticated ? linksUnauthenticated.map(link => (
-         <SidebarMenuItem key={link.href}>
-            <Link href={link.href} className="w-full">
-                <SidebarMenuButton
-                isActive={pathname === link.href}
-                className="w-full justify-start"
-                tooltip={link.label}
-                >
-                <link.icon className="h-5 w-5 text-primary" />
-                <span>{link.label}</span>
-                </SidebarMenuButton>
-            </Link>
-        </SidebarMenuItem>
-      )) : (
-        <SidebarMenuItem>
-             <SidebarMenuButton
-                onClick={logout}
-                className="w-full justify-start"
-                tooltip="Déconnexion"
-                >
-                <LogOut className="h-5 w-5 text-primary" />
-                <span>Déconnexion</span>
+      {allLinks.map(link => (
+        <SidebarMenuItem key={link.href}>
+          <Link href={link.href} className="w-full">
+            <SidebarMenuButton
+              isActive={pathname === link.href}
+              className="w-full justify-start"
+              tooltip={link.label}
+            >
+              <link.icon className="h-5 w-5 text-primary" />
+              <span>{link.label}</span>
+              {link.isPro && <Gem className="ml-auto h-4 w-4 text-yellow-500" />}
             </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+      ))}
+
+      {isAuthenticated && (
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={logout}
+            className="w-full justify-start"
+            tooltip="Déconnexion"
+          >
+            <LogOut className="h-5 w-5 text-primary" />
+            <span>Déconnexion</span>
+          </SidebarMenuButton>
         </SidebarMenuItem>
       )}
     </SidebarMenu>
