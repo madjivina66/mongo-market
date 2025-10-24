@@ -46,7 +46,7 @@ function AppLayoutContent({
   const router = useRouter();
   const pathname = usePathname();
 
-  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription'].includes(pathname);
+  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live'].includes(pathname);
   const isAuthRoute = ['/login', '/signup'].includes(pathname);
 
   useEffect(() => {
@@ -60,7 +60,11 @@ function AppLayoutContent({
   }, [user, loading, router, isProtectedRoute, pathname, isAuthRoute]);
   
   if (isAuthRoute) {
-      return <>{children}</>
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+            {children}
+        </div>
+      )
   }
 
   if (loading || (isProtectedRoute && (!user || user.isAnonymous))) {
