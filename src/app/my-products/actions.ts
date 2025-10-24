@@ -13,7 +13,7 @@ type ActionResult = {
 };
 
 // Action serveur pour supprimer un produit
-export async function deleteProduct(productId: string): Promise<ActionResult> {
+export async function deleteProduct(productId: string, idToken: string): Promise<ActionResult> {
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
   const auth = getAuth(adminApp);
@@ -21,11 +21,10 @@ export async function deleteProduct(productId: string): Promise<ActionResult> {
   let sellerId: string;
 
   try {
-    const idToken = (await auth.verifyIdToken(""));
      if (!idToken) {
       return { error: "Authentification invalide. Impossible de supprimer le produit." };
     }
-    const decodedToken = await auth.verifyIdToken(idToken as unknown as string);
+    const decodedToken = await auth.verifyIdToken(idToken);
     sellerId = decodedToken.uid;
   } catch (error) {
     console.error("Erreur de vérification du token:", error);

@@ -30,18 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       setLoading(false);
-
-      if (user) {
-        // Chaque fois que l'utilisateur change (connexion, rafraîchissement),
-        // on récupère un nouveau token et on le met à jour pour les requêtes futures.
-        try {
-            const token = await user.getIdToken(true);
-            // Stocker le token pour une utilisation ultérieure est géré par le SDK
-            // Ici, nous nous assurons que le navigateur est prêt pour les requêtes authentifiées.
-        } catch (error) {
-            console.error("Erreur lors de la récupération du token initial:", error);
-        }
-      }
     }, (error) => {
       console.error("Auth state change error:", error);
       setUser(null);
