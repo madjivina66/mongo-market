@@ -104,7 +104,7 @@ export default function OrdersPage() {
   const ordersQuery = useMemoFirebase(() => {
     if (!user) return null;
     // La requête pointe maintenant vers la sous-collection `orders` du profil de l'utilisateur.
-    return query(collection(firestore, 'users', user.uid, 'orders'));
+    return query(collection(firestore, 'userProfiles', user.uid, 'orders'));
   }, [firestore, user]);
 
   // Utilisez le hook useCollection pour écouter les données en temps réel.
@@ -129,3 +129,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    

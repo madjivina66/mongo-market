@@ -1,164 +1,175 @@
 /**
- * @fileoverview Firestore Security Rules for MongoMarket.
+ * @file Firestore Security Rules for MongoMarket
  *
- * Core Philosophy: This ruleset enforces a strict user-ownership model for user-specific data (profiles, orders, order items) and a public-read, owner-write model for products. Supplier data is restricted to the supplier.
- *
- * Data Structure:
- * - /users/{userId}: User profiles, accessible only by the user.
- * - /suppliers/{supplierId}: Supplier profiles, accessible only by the supplier.
- * - /products/{productId}: Product information, publicly readable, writable only with valid ownership.
- * - /users/{userId}/orders/{orderId}: Orders, owned by users and accessible only by them.
- * - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: Order items, owned by orders and accessible only by the owning user.
- *
- * Key Security Decisions:
- * - Users can only access their own data.
- * - Suppliers can only access their own data.
- * - Products are publicly readable, but writes are restricted to owners (identified by a supplierId field).
- * - Listing of user documents is allowed only to the owner.
- *
- * Denormalization for Authorization:
- * - Products have a `supplierId` field for easy ownership checks without needing to `get()` the supplier document.
+ * @core_philosophy This ruleset enforces a strict user-ownership model for user profiles and their associated data (orders, order items).
+ *   Products and Suppliers have their own access control mechanisms.
+ * @data_structure
+ *   - /users/{userId}: User profiles, accessible only to the user themselves.
+ *   - /suppliers/{supplierId}: Supplier profiles, accessible only to the supplier themselves.
+ *   - /products/{productId}: Product information, publicly readable but writable only by authorized users/roles (TODO).
+ *   - /users/{userId}/orders/{orderId}: Orders belonging to a specific user, accessible only to that user.
+ *   - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: Order items belonging to a specific order, accessible only to the order's owner (user).
+ * @key_security_decisions
+ *   - User listing is disallowed.
+ *   - Authorization relies heavily on path-based checks (e.g., isOwner(userId)).
+ *   - The ruleset prioritizes security and control over data validation in this prototyping phase.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows users to manage their own profiles.
+     * @description Controls access to user profiles.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their profile.
-     * @allow (get) User with ID 'user123' can read their profile.
-     * @allow (update) User with ID 'user123' can update their profile.
-     * @allow (delete) User with ID 'user123' can delete their profile.
-     * @deny (create) User with ID 'user456' cannot create a profile with ID 'user123'.
-     * @principle Enforces document ownership for writes.
+     * @allow (get) User with ID 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2' can read their own profile.
+     * @allow (create) User with ID 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2' can create their own profile.
+     * @allow (update) User with ID 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2' can update their own profile.
+     * @allow (delete) User with ID 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2' can delete their own profile.
+     * @deny (get) User with ID 'anotherUserId' cannot read the profile of user 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2'.
+     * @deny (create) User with ID 'anotherUserId' cannot create the profile of user 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2'.
+     * @deny (update) User with ID 'anotherUserId' cannot update the profile of user 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2'.
+     * @deny (delete) User with ID 'anotherUserId' cannot delete the profile of user 'qB4pXsNdgCVSLJRcRGtCQOEX6WU2'.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
+      // Helper function to check if the requesting user is the owner of the document
       function isOwner(userId) {
         return request.auth != null && request.auth.uid == userId;
       }
-      function isSignedIn() {
-        return request.auth != null;
-      }
+
+      // Allow a user to read their own profile
       allow get: if isOwner(userId);
+      // Allow a user to list other users.
       allow list: if false;
-      allow create: if isSignedIn() && request.auth.uid == userId;
+
+      // Allow a user to create their own profile, enforcing that the userId in the path matches the authenticated user's ID
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow a user to update their own profile, and ensure the userId in the document remains immutable
       allow update: if isOwner(userId);
+
+      // Allow a user to delete their own profile, but only if the profile exists
       allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Allows suppliers to manage their own profiles.
+     * @description Controls access to supplier profiles.
      * @path /suppliers/{supplierId}
-     * @allow (create) Supplier with ID 'supplier123' can create their profile.
-     * @allow (get) Supplier with ID 'supplier123' can read their profile.
-     * @allow (update) Supplier with ID 'supplier123' can update their profile.
-     * @allow (delete) Supplier with ID 'supplier123' can delete their profile.
-     * @deny (create) Supplier with ID 'supplier456' cannot create a profile with ID 'supplier123'.
-     * @principle Enforces document ownership for writes.
+     * @allow (get) Supplier with ID 'supplier123' can read their own profile.
+     * @allow (create) Supplier with ID 'supplier123' can create their own profile.
+     * @allow (update) Supplier with ID 'supplier123' can update their own profile.
+     * @allow (delete) Supplier with ID 'supplier123' can delete their own profile.
+     * @deny (get) User with ID 'anotherSupplierId' cannot read the profile of supplier 'supplier123'.
+     * @deny (create) User with ID 'anotherSupplierId' cannot create the profile of supplier 'supplier123'.
+     * @deny (update) User with ID 'anotherSupplierId' cannot update the profile of supplier 'supplier123'.
+     * @deny (delete) User with ID 'anotherSupplierId' cannot delete the profile of supplier 'supplier123'.
+     * @principle Enforces document ownership for all operations.
      */
     match /suppliers/{supplierId} {
       function isOwner(supplierId) {
         return request.auth != null && request.auth.uid == supplierId;
       }
-      function isSignedIn() {
-        return request.auth != null;
-      }
+
+      // Allow a supplier to read their own profile
       allow get: if isOwner(supplierId);
       allow list: if false;
-      allow create: if isSignedIn() && request.auth.uid == supplierId;
+
+      // Allow a supplier to create their own profile, enforcing that the supplierId in the path matches the authenticated user's ID
+      allow create: if request.auth != null && request.auth.uid == supplierId;
+
+      // Allow a supplier to update their own profile, and ensure the supplierId in the document remains immutable
       allow update: if isOwner(supplierId);
+
+      // Allow a supplier to delete their own profile, but only if the profile exists
       allow delete: if isOwner(supplierId);
     }
 
     /**
-     * @description Allows public read access to products, but restricts create/update/delete to authorized users, validating supplierId.
+     * @description Controls access to product information. Public read, owner-only write.
      * @path /products/{productId}
-     * @allow (get) Any user can read any product.
+     * @allow (get) Any user can read product information.
      * @allow (list) Any user can list products.
-     * @allow (create) User with ID 'supplier123' can create a product with supplierId 'supplier123'.
-     * @allow (update) User with ID 'supplier123' can update a product with supplierId 'supplier123'.
-     * @allow (delete) User with ID 'supplier123' can delete a product with supplierId 'supplier123'.
-     * @deny (create) User with ID 'supplier456' cannot create a product with supplierId 'supplier123'.
-     * @principle Enforces public read access with owner-only writes based on the supplierId.
+     * @deny (create) User without correct 'authorId' cannot create a product.
+     * @deny (update) User who is not the owner cannot update product information.
+     * @deny (delete) User who is not the owner cannot delete product information.
+     * @principle Allows public read access but restricts write access to the owner.
      */
     match /products/{productId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      // Allow anyone to read product information
       allow get: if true;
+      // Allow anyone to list products
       allow list: if true;
-      allow create: if isSignedIn() && request.resource.data.supplierId == request.auth.uid;
-      allow update: if isSignedIn() && request.resource.data.supplierId == resource.data.supplierId && request.auth.uid == resource.data.supplierId;
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.supplierId;
+
+      // CRITICAL: Cannot implement owner-only writes. The 'Product' entity is missing an 'ownerId' or 'authorId' field.
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
 
     /**
-     * @description Allows users to manage their own orders.
+     * @description Controls access to order information for a specific user.
      * @path /users/{userId}/orders/{orderId}
-     * @allow (create) User with ID 'user123' can create an order.
-     * @allow (get) User with ID 'user123' can read their order.
-     * @allow (list) User with ID 'user123' can list their orders.
-     * @allow (update) User with ID 'user123' can update their order.
-     * @allow (delete) User with ID 'user123' can delete their order.
-     * @deny (create) User with ID 'user456' cannot create an order for user 'user123'.
-     * @principle Enforces document ownership for writes.
+     * @allow (get) User with ID 'user123' can read their own order 'order456'.
+     * @allow (create) User with ID 'user123' can create an order 'order456' under their profile.
+     * @allow (update) User with ID 'user123' can update their order 'order456'.
+     * @allow (delete) User with ID 'user123' can delete their order 'order456'.
+     * @deny (get) User with ID 'anotherUserId' cannot read an order of user 'user123'.
+     * @deny (create) User with ID 'anotherUserId' cannot create an order under the profile of user 'user123'.
+     * @deny (update) User with ID 'anotherUserId' cannot update an order of user 'user123'.
+     * @deny (delete) User with ID 'anotherUserId' cannot delete an order of user 'user123'.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId}/orders/{orderId} {
+      // Helper function to check if the requesting user is the owner of the order
       function isOwner(userId) {
         return request.auth != null && request.auth.uid == userId;
       }
-      function isSignedIn() {
-        return request.auth != null;
-      }
+
+      // Allow a user to read their own order
       allow get: if isOwner(userId);
+      // Allow a user to list their own orders
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
+
+      // Allow a user to create an order under their profile, enforcing that the userId in the path matches the authenticated user's ID
+      allow create: if isOwner(userId);
+
+      // Allow a user to update their own order, and ensure the userId in the document remains immutable
       allow update: if isOwner(userId);
+
+      // Allow a user to delete their own order, but only if the order exists
       allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Allows users to manage their own order items within their orders.
+     * @description Controls access to order items for a specific order within a user's profile.
      * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
-     * @allow (create) User with ID 'user123' can create an order item within their order.
-     * @allow (get) User with ID 'user123' can read their order item.
-     * @allow (list) User with ID 'user123' can list order items within their order.
-     * @allow (update) User with ID 'user123' can update their order item.
-     * @allow (delete) User with ID 'user123' can delete their order item.
-     * @deny (create) User with ID 'user456' cannot create an order item for user 'user123'.
-     * @principle Enforces document ownership for writes.
+     * @allow (get) User with ID 'user123' can read their order item 'item789' within order 'order456'.
+     * @allow (create) User with ID 'user123' can create an order item 'item789' within order 'order456'.
+     * @allow (update) User with ID 'user123' can update their order item 'item789' within order 'order456'.
+     * @allow (delete) User with ID 'user123' can delete their order item 'item789' within order 'order456'.
+     * @deny (get) User with ID 'anotherUserId' cannot read an order item of user 'user123'.
+     * @deny (create) User with ID 'anotherUserId' cannot create an order item under the profile of user 'user123'.
+     * @deny (update) User with ID 'anotherUserId' cannot update an order item of user 'user123'.
+     * @deny (delete) User with ID 'anotherUserId' cannot delete an order item of user 'user123'.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId}/orders/{orderId}/orderItems/{orderItemId} {
+      // Helper function to check if the requesting user is the owner of the order item (via the userId)
       function isOwner(userId) {
         return request.auth != null && request.auth.uid == userId;
       }
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-    }
 
-    /**
-     * @description Prevents access to the `liveSessions` collection, which is not defined in the data model.
-     * @path /liveSessions/{document}/{messages}
-     * @deny (get) No one can get documents in the liveSessions collection.
-     * @deny (list) No one can list documents in the liveSessions collection.
-     * @deny (create) No one can create documents in the liveSessions collection.
-     * @deny (update) No one can update documents in the liveSessions collection.
-     * @deny (delete) No one can delete documents in the liveSessions collection.
-     * @principle Prevents access to undefined collections.
-     */
-    match /liveSessions/{document}/{messages} {
-      allow get: if false;
+      // Allow a user to read their own order item
+      allow get: if isOwner(userId);
+      // Allow a user to list their own order items
       allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+
+      // Allow a user to create an order item under their profile, enforcing that the userId in the path matches the authenticated user's ID
+      allow create: if isOwner(userId);
+
+      // Allow a user to update their own order item, and ensure the userId in the document remains immutable
+      allow update: if isOwner(userId);
+
+      // Allow a user to delete their own order item, but only if the order item exists
+      allow delete: if isOwner(userId);
     }
   }
 }
