@@ -67,7 +67,10 @@ export function LoginForm() {
       });
       router.push('/products');
     } catch (error: any) {
-      const description = `Une erreur est survenue : ${error.code || error.message}`;
+      let description = `Une erreur est survenue : ${error.code || error.message}`;
+      if (error.code === 'auth/operation-not-allowed') {
+        description = "La connexion Google n'est pas activée dans votre console Firebase.";
+      }
       toast({
         title: 'Erreur de connexion Google',
         description: description,

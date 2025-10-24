@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously, Auth } from 'firebase/auth';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously, Auth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useAuth as useFirebaseAuthHook } from '@/firebase'; 
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   loading: boolean;
   signup: (email: string, password: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
+  loginWithGoogle: () => Promise<any>;
   logout: () => Promise<any>;
 }
 
@@ -55,6 +56,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  const loginWithGoogle = () => {
+    if (!auth) return Promise.reject(new Error("Firebase Auth not initialized"));
+    const provider = new GoogleAuthProvider();
+    return signInWithPopup(auth, provider);
+  }
+
   const logout = () => {
     if (!auth) return Promise.reject(new Error("Firebase Auth not initialized"));
     return signOut(auth);
@@ -65,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signup,
     login,
+    loginWithGoogle,
     logout,
   };
 
