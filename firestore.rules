@@ -1,119 +1,102 @@
 /**
  * @file Firestore Security Rules for MongoMarket
- * @core_philosophy This ruleset enforces a strict user-ownership model for user profiles and orders,
- * while products are publicly readable but only modifiable by authorized users/roles.
- * Suppliers are similar to users; they own their data.
+ * @core_philosophy This ruleset enforces a strict user-ownership model for user profiles, suppliers and order data. Product data is publicly readable.
  * @data_structure
- * - /users/{userId}: Stores user profiles.
- * - /suppliers/{supplierId}: Stores supplier profiles.
- * - /products/{productId}: Stores product information.
- * - /users/{userId}/orders/{orderId}: Stores order information for each user.
- * - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: Stores individual order items for each order.
+ *   - /userProfiles/{userId}: Stores user profile information, accessible only by the user.
+ *   - /suppliers/{supplierId}: Stores supplier profiles, accessible only by the supplier.
+ *   - /products/{productId}: Stores product information, publicly readable.
+ *   - /userProfiles/{userId}/orders/{orderId}: Stores order information, accessible only by the user who owns the order.
+ *   - /userProfiles/{userId}/orders/{orderId}/orderItems/{orderItemId}: Stores order items, accessible only by the user who owns the order.
+ *   - /liveSessions/{sessionId}/messages/{messageId}: Stores chat messages for live sessions, publicly readable, writeable by authenticated users.
  * @key_security_decisions
- * - User listing is disallowed.
- * - Public read access for products.
- * - Strict ownership for user profiles, supplier profiles, orders, and order items.
- * - No `get()` calls are used in rules for authorization independence.
+ *   - User listing is disallowed for privacy.
+ *   - Read-only access is granted to the /products collection.
+ *   - Write access to live session messages is only allowed for authenticated users.
+ * @denormalization There are no examples of denormalization in this data model
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Protects all documents from being read or written without authentication.
-     * @path /databases/{database}/documents
-     * @allow (get, list, create, update, delete) Signed-in user can access all.
-     * @deny (get, list, create, update, delete) No access for non-authenticated users.
-     * @principle Requires all requests to be authenticated.
+     * @description Checks if the request is made by a signed-in user.
      */
-    match /{document=**} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-           allow read, write: if isSignedIn();
+    function isSignedIn() {
+      return request.auth != null;
     }
 
     /**
-     * @description Defines access rules for user profiles.
-     * @path /users/{userId}
-     * @allow (get) User can read their own profile.
-     * @allow (create) User can create their own profile.
-     * @allow (update) User can update their own profile.
-     * @allow (delete) User can delete their own profile.
-     * @deny (get) User cannot read other user profiles.
-     * @deny (create) User cannot create other user profiles.
-     * @deny (update) User cannot update other user profiles.
-     * @deny (delete) User cannot delete other user profiles.
-     * @principle Enforces user-ownership.
+     * @description Checks if the requested user id matches the authenticated user's id.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the requested user id matches the authenticated user's id and resource exists.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for user profile documents.
+     * @path /userProfiles/{userId}
+     * @allow (create) User with ID 'user123' can create their own profile.
+     *   - request.auth.uid: 'user123'
+     *   - request.resource.data.id: 'user123'
+     * @allow (get) User with ID 'user123' can read their own profile.
+     *   - request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
+     *   - request.auth.uid: 'user456'
+     *   - request.resource.data.id: 'user123'
+     * @deny (update) User with ID 'user456' cannot update the profile for 'user123'.
+     *   - request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes, restricts read access to the owner.
      */
     match /userProfiles/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-    }
-
-        /**
-     * @description Defines access rules for user profiles.
-     * @path /users/{userId}
-     * @allow (get) User can read their own profile.
-     * @allow (create) User can create their own profile.
-     * @allow (update) User can update their own profile.
-     * @allow (delete) User can delete their own profile.
-     * @deny (get) User cannot read other user profiles.
-     * @deny (create) User cannot create other user profiles.
-     * @deny (update) User cannot update other user profiles.
-     * @deny (delete) User cannot delete other user profiles.
-     * @principle Enforces user-ownership.
-     */
-    match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Defines access rules for supplier profiles.
+     * @description Rules for supplier profile documents.
      * @path /suppliers/{supplierId}
-     * @allow (get) Supplier can read their own profile.
-     * @allow (create) Supplier can create their own profile.
-     * @allow (update) Supplier can update their own profile.
-     * @allow (delete) Supplier can delete their own profile.
-     * @deny (get) Supplier cannot read other supplier profiles.
-     * @deny (create) Supplier cannot create other supplier profiles.
-     * @deny (update) Supplier cannot update other supplier profiles.
-     * @deny (delete) Supplier cannot delete other supplier profiles.
-     * @principle Enforces supplier-ownership.
+     * @allow (create) Supplier with ID 'supplier123' can create their own profile.
+     *   - request.auth.uid: 'supplier123'
+     *   - request.resource.data.id: 'supplier123'
+     * @allow (get) Supplier with ID 'supplier123' can read their own profile.
+     *   - request.auth.uid: 'supplier123'
+     * @deny (create) Supplier with ID 'supplier456' cannot create a profile for 'supplier123'.
+     *   - request.auth.uid: 'supplier456'
+     *   - request.resource.data.id: 'supplier123'
+     * @deny (update) Supplier with ID 'supplier456' cannot update the profile for 'supplier123'.
+     *   - request.auth.uid: 'supplier456'
+     * @principle Enforces document ownership for writes, restricts read access to the owner.
      */
     match /suppliers/{supplierId} {
-      function isOwner(supplierId) {
-        return request.auth.uid == supplierId;
-      }
       allow get: if isOwner(supplierId);
       allow list: if false;
-      allow create: if isOwner(supplierId);
-      allow update: if isOwner(supplierId);
-      allow delete: if isOwner(supplierId);
+      allow create: if isOwner(supplierId) && request.resource.data.id == supplierId;
+      allow update: if isExistingOwner(supplierId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(supplierId);
     }
 
     /**
-     * @description Defines access rules for products.
+     * @description Rules for product documents.
      * @path /products/{productId}
-     * @allow (get) Products are publicly readable.
-     * @allow (list) Products are publicly listable.
-     * @deny (create) Only authorized users or roles can create products. // TODO: Add owner validation once the schema is updated with an ownership field.
-     * @deny (update) Only authorized users or roles can update products. // TODO: Add owner validation once the schema is updated with an ownership field.
-     * @deny (delete) Only authorized users or roles can delete products. // TODO: Add owner validation once the schema is updated with an ownership field.
-     * @principle Public read access with restricted writes.
+     * @allow (get) Any user can read product information.
+     *   - request.auth.uid: null (anonymous access)
+     * @allow (list) Any user can list products.
+     *   - request.auth.uid: null (anonymous access)
+     * @deny (create) Unauthorized user cannot create products.
+     *   - request.auth.uid: 'user123'
+     * @deny (update) Unauthorized user cannot update products.
+     *   - request.auth.uid: 'user123'
+     * @principle Allows public read access, restricts writes to authorized users/roles (Not Implemented).
      */
     match /products/{productId} {
       allow get: if true;
@@ -124,53 +107,68 @@ service cloud.firestore {
     }
 
     /**
-     * @description Defines access rules for orders.
-     * @path /users/{userId}/orders/{orderId}
-     * @allow (get) User can read their own orders.
-     * @allow (list) User can list their own orders.
-     * @allow (create) User can create their own orders.
-     * @allow (update) User can update their own orders.
-     * @allow (delete) User can delete their own orders.
-     * @deny (get) User cannot read other user orders.
-     * @deny (create) User cannot create other user orders.
-     * @deny (update) User cannot update other user orders.
-     * @deny (delete) User cannot delete other user orders.
-     * @principle Enforces user-ownership for orders.
+     * @description Rules for order documents.
+     * @path /userProfiles/{userId}/orders/{orderId}
+     * @allow (create) User with ID 'user123' can create an order for themselves.
+     *   - request.auth.uid: 'user123'
+     *   - request.resource.data.userId: 'user123'
+     * @allow (get) User with ID 'user123' can read their own order.
+     *   - request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create an order for 'user123'.
+     *   - request.auth.uid: 'user456'
+     *   - request.resource.data.userId: 'user123'
+     * @deny (update) User with ID 'user456' cannot update the order for 'user123'.
+     *   - request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes, restricts read access to the owner.
      */
-    match /users/{userId}/orders/{orderId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
+    match /userProfiles/{userId}/orders/{orderId} {
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Defines access rules for order items.
-     * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
-     * @allow (get) User can read their own order items.
-     * @allow (list) User can list their own order items.
-     * @allow (create) User can create their own order items.
-     * @allow (update) User can update their own order items.
-     * @allow (delete) User can delete their own order items.
-     * @deny (get) User cannot read other user order items.
-     * @deny (create) User cannot create other user order items.
-     * @deny (update) User cannot update other user order items.
-     * @deny (delete) User cannot delete other user order items.
-     * @principle Enforces user-ownership for order items.
+     * @description Rules for order item documents.
+     * @path /userProfiles/{userId}/orders/{orderId}/orderItems/{orderItemId}
+     * @allow (create) User with ID 'user123' can create an order item for their own order.
+     *   - request.auth.uid: 'user123'
+     * @allow (get) User with ID 'user123' can read their own order item.
+     *   - request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create an order item for 'user123'.
+     *   - request.auth.uid: 'user456'
+     * @deny (update) User with ID 'user456' cannot update the order item for 'user123'.
+     *   - request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes, restricts read access to the owner.
      */
-    match /users/{userId}/orders/{orderId}/orderItems/{orderItemId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
+    match /userProfiles/{userId}/orders/{orderId}/orderItems/{orderItemId} {
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for chat message documents.
+     * @path /liveSessions/{sessionId}/messages/{messageId}
+     * @allow (get) Any user can read chat messages.
+     *   - request.auth.uid: null (anonymous access)
+     * @allow (list) Any user can list chat messages.
+     *   - request.auth.uid: null (anonymous access)
+     * @allow (create) Authenticated user can create chat messages.
+     *   - request.auth.uid: 'user123'
+     * @deny (update) Unauthorized user cannot update chat messages.
+     *   - request.auth.uid: null (anonymous access)
+     * @principle Allows public read access, restricts writes to authenticated users.
+     */
+    match /liveSessions/{sessionId}/messages/{messageId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }
