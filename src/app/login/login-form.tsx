@@ -68,8 +68,8 @@ export function LoginForm() {
       router.push('/products');
     } catch (error: any) {
       let description = `Une erreur est survenue : ${error.code || error.message}`;
-      if (error.code === 'auth/operation-not-allowed') {
-        description = "La connexion Google n'est pas activée. Veuillez l'activer dans la console Firebase.";
+      if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/unauthorized-domain') {
+        description = "La connexion Google n'est pas activée pour ce site. Le propriétaire doit ajouter ce domaine aux fournisseurs d'authentification dans la console Firebase.";
       }
       toast({
         title: 'Erreur de connexion Google',
