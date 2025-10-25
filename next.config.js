@@ -29,19 +29,6 @@ const nextConfig = {
       },
     ],
   },
-   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Authorization',
-            value: '',
-          },
-        ],
-      },
-    ];
-  },
 };
 
 module.exports = nextConfig;
