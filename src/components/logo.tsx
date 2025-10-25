@@ -12,9 +12,9 @@ export function Logo() {
       <Image
         src={`/${logoFileName}`}
         alt="Logo MongoMarket"
-        width={180} // Vous pouvez ajuster cette valeur
-        height={40} // Vous pouvez ajuster cette valeur
-        className="object-contain"
+        width={50} // Ajusté pour un cercle
+        height={50} // Ajusté pour un cercle
+        className="rounded-full object-cover" // Classes pour un style circulaire
       />
     </Link>
   );
