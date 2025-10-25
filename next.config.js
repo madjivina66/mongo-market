@@ -42,12 +42,6 @@ const nextConfig = {
       },
     ];
   },
-  experimental: {
-    // This allows the Next.js dev server to be accessed from the cloud workstation URL.
-    allowedDevOrigins: [
-      'https://*.cloudworkstations.dev',
-    ],
-  },
 };
 
 module.exports = nextConfig;
