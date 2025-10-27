@@ -50,7 +50,7 @@ Cet espace est sécurisé et accessible uniquement aux utilisateurs authentifié
 *   **Gestion Complète de l'Inventaire (CRUD)** :
     *   **Créer** : Un formulaire (`/admin/add-product`) permet aux vendeurs d'ajouter de nouveaux produits avec un nom, une description, un prix, une catégorie et une image.
     *   **Modifier** : En cliquant sur "Modifier", le vendeur accède à un formulaire pré-rempli pour mettre à jour un produit existant.
-    *   **Supprimer** : Le vendeur peut retirer définitivement un produit de la vente via une boîte de dialogue de confirmation.
+    *   **Supprimer** : Le vendeur peut retirer définitiveément un produit de la vente via une boîte de dialogue de confirmation.
 
 #### 3. Fonctionnalités Avancées
 
@@ -66,6 +66,12 @@ Cet espace est sécurisé et accessible uniquement aux utilisateurs authentifié
 *   **Progressive Web App (PWA)** :
     *   L'application est **installable sur les téléphones mobiles** grâce à un fichier `manifest.json`.
     *   Une fois installée, elle apparaît sur l'écran d'accueil et se lance dans une fenêtre dédiée, sans la barre d'adresse du navigateur, pour une expérience similaire à une application native.
+
+---
+
+### Méthodologie Adoptée
+
+Le développement de MongoMarket a suivi une **approche agile**. Cette méthode a permis une construction itérative et flexible de l'application. Plutôt que de tout planifier à l'avance, le projet a été divisé en cycles courts, permettant d'intégrer des **retours d'utilisateurs à chaque étape**. Cette collaboration continue a assuré que le produit final répondait non seulement aux exigences techniques, mais aussi et surtout aux besoins réels des commerçants et des clients.
 
 ---
 
