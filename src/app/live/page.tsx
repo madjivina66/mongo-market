@@ -102,7 +102,7 @@ function LiveChat() {
 }
 
 export default function LivePage() {
-  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -125,7 +125,7 @@ export default function LivePage() {
         toast({
           variant: 'destructive',
           title: 'Accès Média Refusé',
-          description: 'Veuillez autoriser l\'accès à la caméra et au micro.',
+          description: 'Veuillez autoriser l\'accès à la caméra et au micro dans les paramètres de votre navigateur.',
         });
       }
     };
@@ -191,16 +191,16 @@ export default function LivePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video w-full bg-slate-900 text-white rounded-md overflow-hidden flex items-center justify-center">
-                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted />
-                 {!hasCameraPermission && (
-                    <div className="text-center">
+              <div className="aspect-video w-full bg-slate-900 text-white rounded-md overflow-hidden flex items-center justify-center relative">
+                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                 {hasCameraPermission === false && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
                         <VideoOff className="h-12 w-12 text-muted-foreground" />
                         <p className="mt-2 text-muted-foreground">Caméra non disponible</p>
                     </div>
                 )}
               </div>
-              {!hasCameraPermission && (
+              {hasCameraPermission === false && (
                 <Alert variant="destructive" className="mt-4">
                   <AlertTitle>Accès à la caméra et au micro requis</AlertTitle>
                   <AlertDescription>
