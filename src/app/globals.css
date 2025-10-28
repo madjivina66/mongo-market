@@ -41,20 +41,20 @@
     --border: 85 15% 85%;
     --input: 85 15% 85%;
     --ring: 85 44% 35%;
-    --radius: 0.5rem;
     --chart-1: 85 44% 35%;
     --chart-2: 85 15% 90%;
     --chart-3: 80 60% 98%;
     --chart-4: 80 5% 45%;
     --chart-5: 85 15% 85%;
-    --sidebar-background: 80 60% 98%;
-    --sidebar-foreground: 80 5% 25%;
-    --sidebar-primary: 85 44% 35%;
-    --sidebar-primary-foreground: 80 60% 98%;
-    --sidebar-accent: 85 15% 90%;
-    --sidebar-accent-foreground: 85 44% 35%;
-    --sidebar-border: 85 15% 85%;
-    --sidebar-ring: 85 44% 35%;
+    /* Sidebar colors for light theme */
+    --sidebar-background: 0 0% 9%; /* Black */
+    --sidebar-foreground: 0 0% 98%; /* Almost white text */
+    --sidebar-primary: 80 60% 98%;
+    --sidebar-primary-foreground: 85 44% 35%;
+    --sidebar-accent: 0 0% 15%; /* Darker gray for hover */
+    --sidebar-accent-foreground: 0 0% 98%; /* Almost white text on hover */
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 80 60% 98%;
   }
 
   .dark {
@@ -82,13 +82,14 @@
     --chart-3: 80 5% 10%;
     --chart-4: 80 5% 65%;
     --chart-5: 80 5% 20%;
-    --sidebar-background: 80 5% 10%;
-    --sidebar-foreground: 80 60% 98%;
+    /* Sidebar colors for dark theme */
+    --sidebar-background: 0 0% 9%; /* Black */
+    --sidebar-foreground: 0 0% 98%; /* Almost white text */
     --sidebar-primary: 80 60% 98%;
     --sidebar-primary-foreground: 85 44% 35%;
-    --sidebar-accent: 80 5% 20%;
-    --sidebar-accent-foreground: 80 60% 98%;
-    --sidebar-border: 80 5% 20%;
+    --sidebar-accent: 0 0% 15%; /* Darker gray for hover */
+    --sidebar-accent-foreground: 0 0% 98%; /* Almost white text on hover */
+    --sidebar-border: 0 0% 20%;
     --sidebar-ring: 80 60% 98%;
   }
 }
