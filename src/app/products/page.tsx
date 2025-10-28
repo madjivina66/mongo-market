@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useAuth } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import type { Product } from '@/lib/types';
 import { Input } from '@/components/ui/input';
@@ -43,12 +43,18 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tout');
   const firestore = useFirestore();
+  const { user, loading: authLoading } = useAuth(); // Utiliser le hook useAuth pour vérifier l'état de connexion
 
+  // La requête ne sera préparée que si l'utilisateur est authentifié (même anonymement)
   const productsQuery = useMemoFirebase(() => {
+    if (authLoading || !user) return null;
     return query(collection(firestore, 'products'));
-  }, [firestore]);
+  }, [firestore, authLoading, user]);
 
   const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+  
+  // L'état de chargement global dépend maintenant aussi de l'authentification
+  const isLoading = authLoading || isLoadingProducts;
 
   const categories = useMemo(() => {
     if (!allProducts) return ['Tout'];
@@ -79,7 +85,7 @@ export default function ProductsPage() {
         </p>
       </header>
 
-      {isLoadingProducts && !allProducts ? (
+      {isLoading && !allProducts ? (
         <ProductsPageSkeleton />
       ) : (
         <>
@@ -96,7 +102,7 @@ export default function ProductsPage() {
             </div>
             <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
               <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-none md:inline-flex">
-                {isLoadingProducts ? (
+                {isLoading ? (
                     <>
                         <Skeleton className="h-9 w-20" />
                         <Skeleton className="h-9 w-20" />
