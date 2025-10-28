@@ -76,7 +76,7 @@ export async function addProduct(
       category: data.category,
       imageUrl,
       imageHint,
-      sellerId,
+      sellerId, // Utilisation de l'ID vérifié
       createdAt: new Date(),
     });
     
