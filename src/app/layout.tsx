@@ -1,16 +1,15 @@
 
-'use client';
-
+import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/context/auth-context';
-import { CartProvider } from '@/context/cart-context';
-import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { AppContent } from '@/components/AppContent';
+import { AppProviders } from '@/components/AppProviders';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+  title: 'MongoMarket',
+  description: 'La fraîcheur livrée à votre porte',
+};
 
 export default function RootLayout({
   children,
@@ -23,17 +22,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={`font-body antialiased animated-background ${inter.className}`}>
-        <FirebaseClientProvider>
-          <AuthProvider>
-            <CartProvider>
-              <FirebaseErrorListener />
-              <AppContent>{children}</AppContent>
-              <Toaster />
-            </CartProvider>
-          </AuthProvider>
-        </FirebaseClientProvider>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

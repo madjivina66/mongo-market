@@ -1,21 +1,22 @@
+
 {
-  "name": "MongoMarket Mobile",
+  "name": "MongoMarket",
   "short_name": "MongoMarket",
-  "description": "Votre guichet unique pour les produits frais.",
+  "description": "La fraîcheur livrée à votre porte.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f5f2",
-  "theme_color": "#5a6e56",
+  "background_color": "#ffffff",
+  "theme_color": "#4C6B4A",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/logo-mongo-market.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/logo-mongo-market.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ]
 }
