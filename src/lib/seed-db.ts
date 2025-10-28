@@ -24,7 +24,7 @@ if (getApps().length === 0) {
 
 const adminDb = getFirestore();
 
-const products: Omit<Product, 'id' | 'sellerId'>[] = [
+const productData: Omit<Product, 'id' | 'sellerId'>[] = [
     { name: 'Tomates Fraîches', description: 'Grappe de tomates mûries au soleil.', price: 3.50, category: 'Légumes', imageUrl: PlaceHolderImages[0].imageUrl, imageHint: PlaceHolderImages[0].imageHint },
     { name: 'Carottes Bio', description: 'Botte de carottes fraîches et croquantes.', price: 2.20, category: 'Légumes', imageUrl: PlaceHolderImages[1].imageUrl, imageHint: PlaceHolderImages[1].imageHint },
     { name: 'Pommes Gala', description: 'Pommes sucrées et juteuses, parfaites pour une collation.', price: 4.10, category: 'Fruits', imageUrl: PlaceHolderImages[2].imageUrl, imageHint: PlaceHolderImages[2].imageHint },
@@ -47,42 +47,52 @@ async function seedDatabase() {
     const batch = adminDb.batch();
     
     // Un ID de vendeur de test. Dans une vraie application, il serait dynamique.
-    const testSellerId = "seller_test_id";
+    const testSellerId = "seller_test_id_12345";
     // Un ID d'utilisateur de test pour les commandes.
-    const testUserId = "user_test_id";
+    const testUserId = "user_test_id_67890";
 
-    console.log(`Préparation de ${products.length} produits pour l'ajout...`);
+    console.log(`Suppression des anciens produits de test...`);
+    const oldProducts = await productsCollection.where('sellerId', '==', testSellerId).get();
+    oldProducts.forEach(doc => batch.delete(doc.ref));
+
+    console.log(`Préparation de ${productData.length} produits pour l'ajout...`);
     
-    const productRefs = products.map((product) => {
+    const productRefs: { id: string; data: Omit<Product, 'id' | 'sellerId'> }[] = productData.map((product) => {
         const docRef = productsCollection.doc();
         batch.set(docRef, { ...product, sellerId: testSellerId });
-        return { ref: docRef, data: product };
+        return { id: docRef.id, data: product };
     });
 
     console.log("Ajout de commandes de test pour l'utilisateur de test...");
+    const userProfileRef = adminDb.collection('userProfiles').doc(testUserId);
+    
+    // Supprimer les anciennes commandes de test
+    const oldOrders = await userProfileRef.collection('orders').get();
+    oldOrders.forEach(doc => batch.delete(doc.ref));
+    
+    // Créer des commandes de test plus réalistes
     const orders: Omit<Order, 'id'>[] = [
       {
         userId: testUserId,
         orderDate: new Date('2023-10-26T10:00:00Z').toISOString(),
-        totalAmount: 20.70,
+        totalAmount: (productData[0].price * 2) + productData[5].price,
         status: 'Livrée',
         orderItems: [
-          { productId: 'id_tomate', productName: 'Tomates Fraîches', quantity: 2, price: 3.50 },
-          { productId: 'id_poulet', productName: 'Filet de Poulet', quantity: 1, price: 8.50 },
+          { productId: productRefs[0].id, productName: productData[0].name, quantity: 2, price: productData[0].price },
+          { productId: productRefs[5].id, productName: productData[5].name, quantity: 1, price: productData[5].price },
         ],
       },
       {
         userId: testUserId,
         orderDate: new Date('2023-10-28T14:30:00Z').toISOString(),
-        totalAmount: 8.20,
+        totalAmount: productData[2].price * 1,
         status: 'En traitement',
         orderItems: [
-          { productId: 'id_pomme', productName: 'Pommes Gala', quantity: 2, price: 4.10 },
+          { productId: productRefs[2].id, productName: productData[2].name, quantity: 1, price: productData[2].price },
         ],
       },
     ];
 
-    const userProfileRef = adminDb.collection('userProfiles').doc(testUserId);
     orders.forEach(order => {
         const orderRef = userProfileRef.collection('orders').doc();
         batch.set(orderRef, order);
@@ -91,8 +101,9 @@ async function seedDatabase() {
     try {
         console.log("Exécution du batch write pour les produits et les commandes...");
         await batch.commit();
-        console.log(`✅ Succès ! ${products.length} produits et ${orders.length} commandes ont été ajoutés.`);
-        console.log("Pour tester, connectez-vous avec un utilisateur dont l'ID est 'user_test_id'.");
+        console.log(`✅ Succès ! ${productData.length} produits et ${orders.length} commandes ont été ajoutés.`);
+        console.log(`Vous pouvez vous connecter avec l'ID utilisateur '${testUserId}' pour voir les commandes.`);
+        console.log(`Les produits ont été créés pour le vendeur avec l'ID '${testSellerId}'.`);
     } catch (error) {
         console.error("❌ Erreur lors de l'ajout des données à la base de données :", error);
         console.log("Vérifiez que vos identifiants d'administration (service account) sont correctement configurés si vous exécutez ce script localement.");

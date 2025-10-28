@@ -54,6 +54,9 @@ export async function updateProduct(
     }
     const decodedToken = await auth.verifyIdToken(idToken);
     sellerId = decodedToken.uid;
+     if (!sellerId) {
+        throw new Error("ID utilisateur non trouvé dans le token.");
+    }
   } catch (error) {
     console.error("Erreur de vérification du token:", error);
     return { error: "Authentification invalide." };
