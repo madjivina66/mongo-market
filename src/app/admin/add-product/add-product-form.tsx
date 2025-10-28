@@ -63,7 +63,11 @@ export function AddProductForm() {
     try {
       // On récupère un token frais juste avant de lancer l'action
       const idToken = await user.getIdToken(true);
-      const result = await addProduct(values, idToken);
+
+      // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
+      const { image, ...dataToSend } = values;
+
+      const result = await addProduct(dataToSend, idToken);
       
       if (result.error) {
         throw new Error(result.error);
@@ -136,7 +140,7 @@ export function AddProductForm() {
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="0.01" {...field} />
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -232,3 +236,5 @@ export function AddProductForm() {
     </Card>
   );
 }
+
+    

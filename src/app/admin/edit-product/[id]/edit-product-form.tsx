@@ -65,7 +65,11 @@ export function EditProductForm({ product }: EditProductFormProps) {
     
     try {
       const idToken = await user.getIdToken(true);
-      const result = await updateProduct(product.id, values, idToken);
+      
+      // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
+      const { image, ...dataToSend } = values;
+      
+      const result = await updateProduct(product.id, dataToSend, idToken);
 
       if (result.error) {
         throw new Error(result.error);
@@ -139,7 +143,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="0.01" {...field} />
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -235,3 +239,5 @@ export function EditProductForm({ product }: EditProductFormProps) {
     </Card>
   );
 }
+
+    

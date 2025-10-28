@@ -9,6 +9,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { ProductCategory } from "@/lib/types";
 
 // Ce type définit la structure des données du formulaire
+// Le champ 'image' est optionnel car on ne le transmet pas
 export type ProductFormData = {
   name: string;
   description: string;
@@ -24,7 +25,7 @@ type ActionResult = {
 
 // L'action accepte maintenant le token comme argument
 export async function addProduct(
-  data: ProductFormData,
+  data: Omit<ProductFormData, 'image'>, // On s'assure de ne pas recevoir l'image ici
   idToken: string
 ): Promise<ActionResult> {
 
@@ -94,3 +95,5 @@ export async function addProduct(
     return { error: errorMessage };
   }
 }
+
+    

@@ -8,7 +8,7 @@ import { getAuth } from "firebase-admin/auth";
 import type { Product, ProductCategory } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-// Le schéma de validation est mis à jour pour les nouvelles catégories
+// Le champ 'image' est optionnel car on ne le transmet pas
 export type ProductFormData = {
   name: string;
   description: string;
@@ -25,7 +25,7 @@ type ActionResult = {
 // L'action accepte maintenant le token comme argument
 export async function updateProduct(
   productId: string,
-  data: ProductFormData,
+  data: Omit<ProductFormData, 'image'>, // On s'assure de ne pas recevoir l'image ici
   idToken: string
 ): Promise<ActionResult> {
   // Validation manuelle des données côté serveur
@@ -76,19 +76,16 @@ export async function updateProduct(
       return { error: "Action non autorisée. Vous n'êtes pas le propriétaire de ce produit." };
     }
     
-    const updateData: Partial<Product> = {
+    const updateData: Partial<Omit<Product, 'id'>> = {
       name: data.name,
       description: data.description,
       price: Number(data.price),
       category: data.category,
     };
-
-    // Si une nouvelle image est fournie (même en démo), on la change. Sinon, on garde l'ancienne.
-    if (data.image) {
-        const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
-        updateData.imageUrl = placeholderImage.imageUrl;
-        updateData.imageHint = placeholderImage.imageHint;
-    }
+    
+    // Pour la démo, on pourrait vouloir changer l'image même si aucune n'est téléversée
+    // mais pour l'instant on ne change l'image que si une action est faite côté client, ce qui n'est pas le cas.
+    // Donc, nous n'avons pas besoin de logique d'image ici pour le moment.
 
     await productRef.update(updateData);
 
@@ -106,3 +103,5 @@ export async function updateProduct(
     return { error: errorMessage };
   }
 }
+
+    
