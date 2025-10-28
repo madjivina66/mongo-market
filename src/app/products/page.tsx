@@ -53,7 +53,7 @@ export default function ProductsPage() {
 
   const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
   
-  // L'état de chargement global dépend maintenant aussi de l'authentification
+  // L'état de chargement global dépend maintenant aussi de l'authentification et des produits
   const isLoading = authLoading || isLoadingProducts;
 
   const categories = useMemo(() => {
@@ -85,7 +85,7 @@ export default function ProductsPage() {
         </p>
       </header>
 
-      {isLoading && !allProducts ? (
+      {isLoading || !allProducts ? (
         <ProductsPageSkeleton />
       ) : (
         <>
@@ -102,19 +102,11 @@ export default function ProductsPage() {
             </div>
             <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
               <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-none md:inline-flex">
-                {isLoading ? (
-                    <>
-                        <Skeleton className="h-9 w-20" />
-                        <Skeleton className="h-9 w-20" />
-                        <Skeleton className="h-9 w-20" />
-                    </>
-                ) : (
-                    categories.map(category => (
-                    <TabsTrigger key={category} value={category}>
-                        {category}
-                    </TabsTrigger>
-                    ))
-                )}
+                {categories.map(category => (
+                <TabsTrigger key={category} value={category}>
+                    {category}
+                </TabsTrigger>
+                ))}
               </TabsList>
             </Tabs>
           </div>
