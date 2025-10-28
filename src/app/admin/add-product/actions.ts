@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
 import { getAuth } from "firebase-admin/auth";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { ProductCategory } from "@/lib/types";
 
 // Ce type définit la structure des données du formulaire
@@ -15,6 +14,8 @@ export type ProductFormData = {
   description: string;
   price: number;
   category: ProductCategory;
+  imageUrl: string;
+  imageHint: string;
   image?: any;
 };
 
@@ -42,6 +43,9 @@ export async function addProduct(
   if (!data.category) {
     return { error: "La catégorie est requise." };
   }
+  if (!data.imageUrl || !data.imageHint) {
+    return { error: "L'image du produit est requise." };
+  }
 
   // Initialiser l'app admin Firebase pour accéder à Firestore côté serveur
   const adminApp = await initializeAdminApp();
@@ -63,10 +67,6 @@ export async function addProduct(
     console.error("Erreur de vérification du token:", error);
     return { error: "Authentification invalide. Impossible de vérifier l'utilisateur." };
   }
-  
-  const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
-  const imageUrl = placeholderImage.imageUrl;
-  const imageHint = placeholderImage.imageHint;
 
   try {
     const docRef = await db.collection("products").add({
@@ -74,8 +74,8 @@ export async function addProduct(
       description: data.description,
       price: Number(data.price),
       category: data.category,
-      imageUrl,
-      imageHint,
+      imageUrl: data.imageUrl,
+      imageHint: data.imageHint,
       sellerId, // Utilisation de l'ID vérifié
       createdAt: new Date(),
     });
@@ -95,5 +95,3 @@ export async function addProduct(
     return { error: errorMessage };
   }
 }
-
-    

@@ -18,6 +18,7 @@ import { useAuth } from "@/context/auth-context";
 
 import { addProduct, type ProductFormData } from "./actions";
 import type { ProductCategory } from "@/lib/types";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements'];
 
@@ -30,7 +31,7 @@ export function AddProductForm() {
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const form = useForm<ProductFormData>({
+  const form = useForm<Omit<ProductFormData, 'imageUrl' | 'imageHint'>>({
     defaultValues: {
       name: "",
       description: "",
@@ -48,7 +49,7 @@ export function AddProductForm() {
   }, [imagePreview]);
 
 
-  async function onSubmit(values: ProductFormData) {
+  async function onSubmit(values: Omit<ProductFormData, 'imageUrl' | 'imageHint'>) {
     if (!user) {
       toast({
         title: "Non connecté",
@@ -65,7 +66,16 @@ export function AddProductForm() {
       const idToken = await user.getIdToken(true);
 
       // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
-      const { image, ...dataToSend } = values;
+      const { image, ...data } = values;
+
+      // On choisit l'image aléatoire ici, côté client
+      const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+
+      const dataToSend = {
+        ...data,
+        imageUrl: placeholderImage.imageUrl,
+        imageHint: placeholderImage.imageHint,
+      };
 
       const result = await addProduct(dataToSend, idToken);
       
@@ -236,5 +246,3 @@ export function AddProductForm() {
     </Card>
   );
 }
-
-    
