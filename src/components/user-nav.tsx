@@ -14,12 +14,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { Skeleton } from './ui/skeleton';
 
 export function UserNav() {
   const { user, logout, loading } = useAuth();
 
   if (loading) {
-    return null; // or a skeleton loader
+    return <Skeleton className="h-9 w-9 rounded-full" />;
   }
 
   if (!user || user.isAnonymous) {
@@ -55,13 +56,13 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <Link href="/profile">
+          <Link href="/profile" passHref>
             <DropdownMenuItem>Profil</DropdownMenuItem>
           </Link>
-          <Link href="/orders">
+          <Link href="/orders" passHref>
             <DropdownMenuItem>Commandes</DropdownMenuItem>
           </Link>
-          <Link href="/subscription">
+          <Link href="/subscription" passHref>
             <DropdownMenuItem>Abonnement</DropdownMenuItem>
           </Link>
         </DropdownMenuGroup>

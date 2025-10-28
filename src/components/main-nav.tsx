@@ -61,13 +61,13 @@ export function MainNav() {
 
   const isProUser = profile?.isPro ?? false;
 
-  if (loading) {
+  if (loading || (isAuthenticated && isLoadingProfile)) {
       return (
-          <div className="p-2">
+          <SidebarMenu>
               {Array.from({length: 5}).map((_, i) => (
                    <SidebarMenuSkeleton key={i} />
               ))}
-          </div>
+          </SidebarMenu>
       )
   }
 
@@ -75,21 +75,28 @@ export function MainNav() {
 
   return (
     <SidebarMenu>
-      {allLinks.map(link => (
-        <SidebarMenuItem key={link.href}>
-          <Link href={link.href} className="w-full">
-            <SidebarMenuButton
-              isActive={pathname === link.href}
-              className="w-full justify-start"
-              tooltip={link.label}
-            >
-              <link.icon className="h-5 w-5 text-primary" />
-              <span>{link.label}</span>
-              {link.isPro && <Gem className="ml-auto h-4 w-4 text-yellow-500" />}
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-      ))}
+      {allLinks.map(link => {
+        // Hide pro links if user is not pro, even if authenticated
+        if (link.isPro && !isProUser) return null;
+        // Hide protected links if not authenticated
+        if (link.protected && !isAuthenticated) return null;
+
+        return (
+          <SidebarMenuItem key={link.href}>
+            <Link href={link.href} className="w-full">
+              <SidebarMenuButton
+                isActive={pathname === link.href}
+                className="w-full justify-start"
+                tooltip={link.label}
+              >
+                <link.icon className="h-5 w-5 text-primary" />
+                <span>{link.label}</span>
+                {link.isPro && <Gem className="ml-auto h-4 w-4 text-yellow-500" />}
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+        )
+      })}
 
       {isAuthenticated && (
         <SidebarMenuItem>
