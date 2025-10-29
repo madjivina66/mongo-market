@@ -37,7 +37,7 @@ export default function SubscriptionPage() {
     const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
     const userProfileRef = useMemoFirebase(() => {
-        if (!user) return null;
+        if (!user || user.isAnonymous) return null;
         return doc(firestore, 'userProfiles', user.uid);
     }, [firestore, user]);
 

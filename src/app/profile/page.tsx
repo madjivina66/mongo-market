@@ -96,7 +96,7 @@ export default function ProfilePage() {
   });
 
   const userProfileRef = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || user.isAnonymous) return null;
     return doc(firestore, 'userProfiles', user.uid);
   }, [firestore, user]);
 
@@ -105,7 +105,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       form.reset(profile);
-    } else if (user) {
+    } else if (user && !user.isAnonymous) {
       form.reset({
         name: user.displayName || '',
         email: user.email || '',

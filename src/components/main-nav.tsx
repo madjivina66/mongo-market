@@ -53,7 +53,7 @@ export function MainNav() {
   const firestore = useFirestore();
 
   const userProfileRef = useMemoFirebase(() => {
-    // CORRECTION : Ne pas essayer de charger le profil pour les utilisateurs anonymes
+    // CORRECTION : Ne pas essayer de charger le profil pour les utilisateurs anonymes ou non connectés
     if (!user || user.isAnonymous) return null;
     return doc(firestore, 'userProfiles', user.uid);
   }, [firestore, user]);
