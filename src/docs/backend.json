@@ -266,7 +266,6 @@
             "$ref": "#/backend/entities/UserProfile"
           },
           "description": "Stores user profiles. Access is restricted to the user themselves.",
-          "security": "allow read, write: if request.auth != null && request.auth.uid == userId;",
           "params": [
             {
               "name": "userId",
