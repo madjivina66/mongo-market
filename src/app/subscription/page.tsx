@@ -62,7 +62,7 @@ export default function SubscriptionPage() {
                 description: "Vous êtes maintenant un membre Pro.",
             });
             setShowPaymentOptions(false); // Cacher les options de paiement après la réussite
-            router.refresh();
+            router.refresh(); // Rafraîchit l'état du serveur pour mettre à jour l'interface
         } catch(e: any) {
              toast({
                 title: "Erreur",
@@ -184,3 +184,5 @@ export default function SubscriptionPage() {
     </div>
   );
 }
+
+    
