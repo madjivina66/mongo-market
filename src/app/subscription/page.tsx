@@ -3,15 +3,15 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Loader2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Check, Loader2, CreditCard, Smartphone } from "lucide-react";
 import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { UserProfile } from "@/lib/types";
 import { upgradeToPro } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-
+import { Badge } from "@/components/ui/badge";
 
 const featuresPro = [
   "Nombre de produits illimité",
@@ -32,6 +32,7 @@ export default function SubscriptionPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [isUpgrading, setIsUpgrading] = useState(false);
+    const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user) return null;
@@ -59,6 +60,7 @@ export default function SubscriptionPage() {
                 title: "Félicitations !",
                 description: "Vous êtes maintenant un membre Pro.",
             });
+            setShowPaymentOptions(false); // Cacher les options de paiement après la réussite
             router.refresh();
         } catch(e: any) {
              toast({
@@ -68,6 +70,12 @@ export default function SubscriptionPage() {
             });
         } finally {
             setIsUpgrading(false);
+        }
+    }
+
+    const handleShowPayments = () => {
+        if (!isPro) {
+            setShowPaymentOptions(true);
         }
     }
 
@@ -83,9 +91,12 @@ export default function SubscriptionPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card>
+            <Card className={!isPro ? "border-2 border-primary shadow-lg" : "border-2 border-muted"}>
                 <CardHeader>
-                    <CardTitle className="font-headline">Plan Gratuit</CardTitle>
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="font-headline">Plan Gratuit</CardTitle>
+                        {!isPro && <Badge variant="default">Plan actuel</Badge>}
+                    </div>
                     <CardDescription>Parfait pour commencer et découvrir la plateforme.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -93,41 +104,68 @@ export default function SubscriptionPage() {
                     <ul className="space-y-2">
                         {featuresFree.map((feature, index) => (
                             <li key={index} className="flex items-center gap-2">
-                                <Check className="h-5 w-5 text-green-500" />
+                                <Check className="h-5 w-5 text-primary" />
                                 <span className="text-muted-foreground">{feature}</span>
                             </li>
                         ))}
                     </ul>
-                     <Button variant="outline" className="w-full" disabled={!isPro}>
-                        Votre plan actuel
+                     <Button variant="outline" className="w-full" disabled={!isPro} onClick={() => { /* Logique future pour revenir au plan gratuit */ }}>
+                        {isPro ? "Passer au plan Gratuit" : "Votre plan actuel"}
                     </Button>
                 </CardContent>
             </Card>
 
-            <Card className={isPro ? "border-2 border-muted" : "border-2 border-primary shadow-lg"}>
+            <Card className={isPro ? "border-2 border-primary shadow-lg" : "border-2"}>
                 <CardHeader>
-                    <CardTitle className="font-headline">Plan Pro</CardTitle>
+                     <div className="flex justify-between items-center">
+                        <CardTitle className="font-headline">Plan Pro</CardTitle>
+                        {isPro && <Badge variant="default">Plan actuel</Badge>}
+                    </div>
                     <CardDescription>Pour les commerçants sérieux qui veulent maximiser leur visibilité.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <p className="text-4xl font-bold">$19<span className="text-lg font-normal text-muted-foreground">/mois</span></p>
-                     <ul className="space-y-2">
-                        {featuresPro.map((feature, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                                <Check className="h-5 w-5 text-primary" />
-                                <span>{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <Button onClick={handleUpgrade} className="w-full font-headline text-lg" disabled={isPro || isUpgrading}>
-                        {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isPro ? "Vous êtes déjà Pro" : "Passer à Pro"}
-                    </Button>
+                     
+                     {!showPaymentOptions ? (
+                        <>
+                            <ul className="space-y-2">
+                                {featuresPro.map((feature, index) => (
+                                    <li key={index} className="flex items-center gap-2">
+                                        <Check className="h-5 w-5 text-primary" />
+                                        <span>{feature}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <Button onClick={handleShowPayments} className="w-full font-headline text-lg" disabled={isPro || isUpgrading}>
+                                {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isPro ? "Vous êtes déjà Pro" : "Passer à Pro"}
+                            </Button>
+                        </>
+                     ) : (
+                        <div className="pt-4">
+                            <h3 className="font-semibold text-center mb-4">Finaliser avec</h3>
+                            <div className="space-y-3">
+                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4" disabled={isUpgrading}>
+                                    {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <CreditCard /> Payer par carte
+                                </Button>
+                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4" variant="secondary" disabled={isUpgrading}>
+                                    {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Smartphone /> Payer avec Moov Money
+                                </Button>
+                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4" variant="secondary" disabled={isUpgrading}>
+                                    {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Smartphone /> Payer avec Airtel Money
+                                </Button>
+                                <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => setShowPaymentOptions(false)}>Annuler</Button>
+                            </div>
+                        </div>
+                     )}
                 </CardContent>
             </Card>
         </div>
          <p className="mt-8 text-center text-xs text-muted-foreground">
-            Le paiement réel n'est pas encore implémenté. Cliquer sur "Passer à Pro" mettra à jour votre compte au statut Pro à des fins de démonstration.
+            Le paiement réel n'est pas implémenté. Cliquer sur une option de paiement mettra à jour votre compte au statut Pro pour la démonstration.
         </p>
     </div>
   );
