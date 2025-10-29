@@ -57,6 +57,7 @@ export default function SubscriptionPage() {
     const handleUpgrade = async () => {
         if (!user || user.isAnonymous) {
             toast({ title: "Erreur", description: "Vous devez être connecté pour passer à Pro.", variant: "destructive" });
+            router.push('/login');
             return;
         }
 
@@ -72,7 +73,6 @@ export default function SubscriptionPage() {
                 description: "Vous êtes maintenant un membre Pro.",
             });
             setShowPaymentOptions(false); // Hide payment options on success
-            // La page se rafraîchira grâce au hook `useDoc` qui détecte le changement
         } catch(e: any) {
              toast({
                 title: "Erreur",

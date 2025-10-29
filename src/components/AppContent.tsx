@@ -53,25 +53,24 @@ export function AppContent({
   const pathname = usePathname();
 
   const isAuthRoute = ['/login', '/signup'].includes(pathname);
+  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname);
 
-  // useEffect(() => {
-  //   // Ne rien faire tant que l'état d'authentification n'est pas résolu
-  //   if (loading) {
-  //     return;
-  //   }
+   useEffect(() => {
+    // Ne rien faire tant que l'état d'authentification n'est pas résolu
+    if (loading) {
+      return;
+    }
     
-  //   const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname);
-
-  //   // CORRECTION : Rediriger uniquement si le chargement est terminé ET que l'utilisateur n'est pas valide
-  //   if (!loading && isProtectedRoute && (!user || user.isAnonymous)) {
-  //     router.push('/login');
-  //   }
+    // Rediriger si un utilisateur non authentifié (ou anonyme) essaie d'accéder à une route protégée
+    if (isProtectedRoute && (!user || user.isAnonymous)) {
+      router.push('/login');
+    }
     
-  //   // Rediriger si un utilisateur connecté essaie d'accéder aux pages de connexion/inscription
-  //   if (isAuthRoute && user && !user.isAnonymous) {
-  //     router.push('/products');
-  //   }
-  // }, [user, loading, router, pathname, isAuthRoute]);
+    // Rediriger si un utilisateur authentifié (non anonyme) essaie d'accéder aux pages de connexion/inscription
+    if (isAuthRoute && user && !user.isAnonymous) {
+      router.push('/products');
+    }
+  }, [user, loading, router, pathname, isAuthRoute, isProtectedRoute]);
   
 
   if (isAuthRoute) {
@@ -84,9 +83,9 @@ export function AppContent({
   }
   
   // Affiche un loader sur les pages protégées si l'authentification est en cours
-  // if (loading && (pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname))) {
-  //     return <AppLoading />;
-  // }
+  if (loading && isProtectedRoute) {
+      return <AppLoading />;
+  }
 
 
   return (
