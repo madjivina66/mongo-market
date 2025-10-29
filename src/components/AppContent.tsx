@@ -52,33 +52,41 @@ export function AppContent({
   const router = useRouter();
   const pathname = usePathname();
 
-  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live'].includes(pathname);
+  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname);
   const isAuthRoute = ['/login', '/signup'].includes(pathname);
 
   useEffect(() => {
+    // Ne rien faire tant que l'état d'authentification n'est pas résolu
     if (loading) {
       return;
     }
 
-    if (isProtectedRoute && (!user || user.isAnonymous)) {
+    // CORRECTION : Rediriger uniquement si le chargement est terminé ET que l'utilisateur n'est pas valide
+    if (!loading && isProtectedRoute && (!user || user.isAnonymous)) {
       router.push('/login');
     }
-     if (isAuthRoute && user && !user.isAnonymous) {
+    
+    // Rediriger si un utilisateur connecté essaie d'accéder aux pages de connexion/inscription
+    if (isAuthRoute && user && !user.isAnonymous) {
       router.push('/products');
     }
   }, [user, loading, router, isProtectedRoute, pathname, isAuthRoute]);
+  
 
   if (isAuthRoute) {
       return (
         <div className="flex min-h-screen items-center justify-center p-4">
+            {/* Afficher un loader si on est sur une page d'auth et que l'auth est en cours */}
             {loading ? <AppLoading /> : children}
         </div>
       )
   }
   
-  if (loading && (isProtectedRoute || !user)) {
+  // Affiche un loader sur les pages protégées si l'authentification est en cours
+  if (loading && isProtectedRoute) {
       return <AppLoading />;
   }
+
 
   return (
       <SidebarProvider>
