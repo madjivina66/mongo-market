@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -21,7 +22,9 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false); // Nouvel état pour suivre le chargement
 
+  // Étape 1 : Charger les données du localStorage uniquement côté client
   useEffect(() => {
     try {
         const storedCart = localStorage.getItem('mongoMarketCart');
@@ -31,12 +34,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
         console.error("Failed to parse cart from localStorage", error);
         setCartItems([]);
+    } finally {
+        setIsLoaded(true); // Marquer comme chargé
     }
   }, []);
 
+  // Étape 2 : Sauvegarder dans le localStorage uniquement si chargé
   useEffect(() => {
-    localStorage.setItem('mongoMarketCart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isLoaded) {
+      localStorage.setItem('mongoMarketCart', JSON.stringify(cartItems));
+    }
+  }, [cartItems, isLoaded]);
 
   const addToCart = (product: Product) => {
     setCartItems(prevItems => {
@@ -72,6 +80,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  
+  // Ne rend le contenu que lorsque le panier est chargé pour éviter les erreurs d'hydratation
+  if (!isLoaded) {
+    return null; // ou un spinner de chargement si vous préférez
+  }
 
   return (
     <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal }}>
