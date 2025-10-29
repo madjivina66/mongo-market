@@ -13,7 +13,7 @@ interface AuthContextType {
   loading: boolean;
   signup: (email: string, password: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
-  loginWithGoogle: () => Promise<any>;
+  // loginWithGoogle: () => Promise<any>; // Retiré
   logout: () => Promise<any>;
 }
 
@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  /*
   const loginWithGoogle = async () => {
     if (!auth || !firestore) return Promise.reject(new Error("Firebase not initialized"));
     const provider = new GoogleAuthProvider();
@@ -88,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return Promise.reject(error);
     }
   }
+  */
 
   const logout = () => {
     if (!auth) return Promise.reject(new Error("Firebase Auth not initialized"));
@@ -99,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signup,
     login,
-    loginWithGoogle,
+    // loginWithGoogle, // Retiré
     logout,
   };
 
@@ -117,5 +119,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    

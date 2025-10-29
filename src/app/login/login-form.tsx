@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc"; // Retiré
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,10 +23,10 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  // const [isGoogleLoading, setIsGoogleLoading] = useState(false); // Retiré
   const router = useRouter();
   const { toast } = useToast();
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth(); // loginWithGoogle retiré
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,6 +57,7 @@ export function LoginForm() {
     }
   }
 
+  /*
   async function handleGoogleLogin() {
     setIsGoogleLoading(true);
     try {
@@ -80,9 +81,11 @@ export function LoginForm() {
       setIsGoogleLoading(false);
     }
   }
+  */
 
   return (
     <>
+      {/*
       <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
         {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FcGoogle className="mr-2 h-5 w-5" />}
         Se connecter avec Google
@@ -92,6 +95,7 @@ export function LoginForm() {
         <span className="mx-4 text-xs text-muted-foreground">OU</span>
         <Separator className="flex-1" />
       </div>
+      */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -120,7 +124,7 @@ export function LoginForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Se connecter avec l'email
           </Button>
