@@ -61,8 +61,8 @@ export default function SubscriptionPage() {
                 title: "Félicitations !",
                 description: "Vous êtes maintenant un membre Pro.",
             });
-            setShowPaymentOptions(false); // Cacher les options de paiement après la réussite
-            router.refresh(); // Rafraîchit l'état du serveur pour mettre à jour l'interface
+            setShowPaymentOptions(false);
+            router.refresh();
         } catch(e: any) {
              toast({
                 title: "Erreur",
@@ -79,9 +79,7 @@ export default function SubscriptionPage() {
             router.push('/login');
             return;
         }
-        if (!isPro) {
-            setShowPaymentOptions(true);
-        }
+        setShowPaymentOptions(true);
     }
 
   return (
@@ -96,7 +94,7 @@ export default function SubscriptionPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className={!isPro ? "border-2 border-primary shadow-lg" : "border-2 border-muted"}>
+            <Card className={!isPro ? "border-2 border-muted" : "border-2 border-primary shadow-lg"}>
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <CardTitle className="font-headline">Plan Gratuit</CardTitle>
@@ -114,13 +112,13 @@ export default function SubscriptionPage() {
                             </li>
                         ))}
                     </ul>
-                     <Button variant="outline" className="w-full" disabled={!isPro} onClick={() => { /* Logique future pour revenir au plan gratuit */ }}>
+                     <Button variant="outline" className="w-full" disabled={!isPro}>
                         {isPro ? "Passer au plan Gratuit" : "Votre plan actuel"}
                     </Button>
                 </CardContent>
             </Card>
 
-            <Card className={isPro ? "border-2 border-primary shadow-lg" : "border-2"}>
+            <Card className={isPro ? "border-2 border-muted" : "border-2 border-primary shadow-lg"}>
                 <CardHeader>
                      <div className="flex justify-between items-center">
                         <CardTitle className="font-headline">Plan Pro</CardTitle>
@@ -131,7 +129,16 @@ export default function SubscriptionPage() {
                 <CardContent className="space-y-4">
                      <p className="text-4xl font-bold">$19<span className="text-lg font-normal text-muted-foreground">/mois</span></p>
                      
-                     {!showPaymentOptions ? (
+                     {isPro ? (
+                         <ul className="space-y-2">
+                            {featuresPro.map((feature, index) => (
+                                <li key={index} className="flex items-center gap-2">
+                                    <Check className="h-5 w-5 text-primary" />
+                                    <span>{feature}</span>
+                                </li>
+                            ))}
+                        </ul>
+                     ) : !showPaymentOptions ? (
                         <>
                             <ul className="space-y-2">
                                 {featuresPro.map((feature, index) => (
@@ -141,9 +148,8 @@ export default function SubscriptionPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <Button onClick={handleShowPayments} className="w-full font-headline text-lg" disabled={isPro || isUpgrading}>
-                                {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isPro ? "Vous êtes déjà Pro" : "Passer à Pro"}
+                            <Button onClick={handleShowPayments} className="w-full font-headline text-lg">
+                                Passer à Pro
                             </Button>
                         </>
                      ) : (
@@ -175,6 +181,12 @@ export default function SubscriptionPage() {
                             </div>
                         </div>
                      )}
+                     
+                     {isPro && (
+                        <Button className="w-full font-headline text-lg" disabled>
+                            Vous êtes déjà Pro
+                        </Button>
+                     )}
                 </CardContent>
             </Card>
         </div>
@@ -184,5 +196,3 @@ export default function SubscriptionPage() {
     </div>
   );
 }
-
-    
