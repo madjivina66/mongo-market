@@ -148,19 +148,28 @@ export default function SubscriptionPage() {
                         </>
                      ) : (
                         <div className="pt-4">
-                            <h3 className="font-semibold text-center mb-4">Finaliser avec</h3>
+                            <h3 className="font-semibold text-center mb-4">Finaliser le paiement</h3>
                             <div className="space-y-3">
-                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4" disabled={isUpgrading}>
-                                    {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    <CreditCard /> Payer par carte
+                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4 h-auto flex-col items-start py-3" disabled={isUpgrading}>
+                                    <div className="flex items-center gap-4">
+                                        {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        <CreditCard /> <span>Payer par carte</span>
+                                    </div>
+                                    <p className="text-xs text-left text-primary-foreground/80 pl-8">Option sécurisée par Stripe.</p>
                                 </Button>
-                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4" variant="secondary" disabled={isUpgrading}>
-                                    {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    <Smartphone /> Payer avec Moov Money
+                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4 h-auto flex-col items-start py-3" variant="secondary" disabled={isUpgrading}>
+                                    <div className="flex items-center gap-4">
+                                        {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        <Smartphone /> <span>Payer avec Moov Money</span>
+                                    </div>
+                                    <p className="text-xs text-left text-secondary-foreground/80 pl-8">Numéro : 95 38 38 77</p>
                                 </Button>
-                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4" variant="secondary" disabled={isUpgrading}>
-                                    {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    <Smartphone /> Payer avec Airtel Money
+                                <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4 h-auto flex-col items-start py-3" variant="secondary" disabled={isUpgrading}>
+                                     <div className="flex items-center gap-4">
+                                        {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        <Smartphone /> <span>Payer avec Airtel Money</span>
+                                    </div>
+                                    <p className="text-xs text-left text-secondary-foreground/80 pl-8">Numéro : 66 78 96 04</p>
                                 </Button>
                                 <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => setShowPaymentOptions(false)}>Annuler</Button>
                             </div>
