@@ -44,8 +44,9 @@ export default function SubscriptionPage() {
     const isPro = profile?.isPro ?? false;
 
     const handleUpgrade = async () => {
-        if (!user) {
-            toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive" });
+        if (!user || user.isAnonymous) {
+            toast({ title: "Erreur", description: "Vous devez être connecté pour passer à Pro.", variant: "destructive" });
+            router.push('/login');
             return;
         }
 
@@ -74,6 +75,10 @@ export default function SubscriptionPage() {
     }
 
     const handleShowPayments = () => {
+        if (!user || user.isAnonymous) {
+            router.push('/login');
+            return;
+        }
         if (!isPro) {
             setShowPaymentOptions(true);
         }
