@@ -72,7 +72,7 @@ export default function SubscriptionPage() {
                 title: "Félicitations !",
                 description: "Vous êtes maintenant un membre Pro.",
             });
-            setShowPaymentOptions(false); // Hide payment options on success
+            setShowPaymentOptions(false);
         } catch(e: any) {
              toast({
                 title: "Erreur",
@@ -130,7 +130,9 @@ export default function SubscriptionPage() {
                             </li>
                         ))}
                     </ul>
-                     <Button variant="outline" className="w-full" disabled>Votre plan actuel</Button>
+                     <Button variant="outline" className="w-full" disabled={!isPro}>
+                        {isPro ? "Passer au plan Gratuit" : "Votre plan actuel"}
+                    </Button>
                 </CardContent>
             </Card>
 
