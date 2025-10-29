@@ -1,4 +1,3 @@
-
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -9,17 +8,23 @@ import { getFirestore } from 'firebase/firestore'
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
   if (!getApps().length) {
+    // Important! initializeApp() is called without any arguments because Firebase App Hosting
+    // integrates with the initializeApp() function to provide the environment variables needed to
+    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
+    // without arguments.
     let firebaseApp;
     try {
-      // Prioritize local config for build command, fallback to auto-init for deployment.
-      firebaseApp = initializeApp(firebaseConfig);
-    } catch (e) {
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Local config initialization failed, trying automatic initialization for App Hosting.', e);
-      }
-      // This will be used in the deployed App Hosting environment
+      // Attempt to initialize via Firebase App Hosting environment variables
       firebaseApp = initializeApp();
+    } catch (e) {
+      // Only warn in production because it's normal to use the firebaseConfig to initialize
+      // during development
+      if (process.env.NODE_ENV === "production") {
+        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
+      }
+      firebaseApp = initializeApp(firebaseConfig);
     }
+
     return getSdks(firebaseApp);
   }
 

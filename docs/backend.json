@@ -1,15 +1,58 @@
-
 {
   "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user profile in the MongoMarket application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user profile."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the user."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Contact number of the user."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the user."
+        },
+        "paymentMethods": {
+          "type": "array",
+          "description": "Payment methods associated with the user.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
     "Product": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
       "type": "object",
-      "description": "Represents a product listed on MongoMarket.",
+      "description": "Represents a product listed on the MongoMarket.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Product entity."
+          "description": "Unique identifier for the product."
         },
         "supplierId": {
           "type": "string",
@@ -17,11 +60,11 @@
         },
         "name": {
           "type": "string",
-          "description": "The name of the product."
+          "description": "Name of the product."
         },
         "description": {
           "type": "string",
-          "description": "A detailed description of the product."
+          "description": "Description of the product."
         },
         "imageUrl": {
           "type": "string",
@@ -30,11 +73,11 @@
         },
         "price": {
           "type": "number",
-          "description": "The price of the product."
+          "description": "Price of the product."
         },
         "category": {
           "type": "string",
-          "description": "The category the product belongs to."
+          "description": "Category of the product."
         }
       },
       "required": [
@@ -42,7 +85,6 @@
         "supplierId",
         "name",
         "description",
-        "imageUrl",
         "price",
         "category"
       ]
@@ -51,119 +93,70 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Supplier",
       "type": "object",
-      "description": "Represents a supplier listing products on MongoMarket.",
+      "description": "Represents a supplier on the MongoMarket platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Supplier entity."
+          "description": "Unique identifier for the supplier."
         },
-        "name": {
+        "userId": {
           "type": "string",
-          "description": "The name of the supplier."
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:1 Supplier)"
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Name of the supplier's company."
+        },
+        "contactName": {
+          "type": "string",
+          "description": "Contact name of the supplier."
         },
         "contactEmail": {
           "type": "string",
-          "description": "The contact email address of the supplier.",
+          "description": "Contact email of the supplier.",
           "format": "email"
         },
         "contactPhone": {
           "type": "string",
-          "description": "The contact phone number of the supplier."
-        },
-        "address": {
-          "type": "string",
-          "description": "The physical address of the supplier."
+          "description": "Contact phone number of the supplier."
         }
       },
       "required": [
         "id",
-        "name",
-        "contactEmail",
-        "contactPhone",
-        "address"
-      ]
-    },
-    "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserProfile",
-      "type": "object",
-      "description": "Represents a user's profile in the MongoMarket application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The user's full name."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the user.",
-          "format": "email"
-        },
-        "phone": {
-            "type": "string",
-            "description": "The user's phone number."
-        },
-        "address": {
-          "type": "object",
-          "properties": {
-              "street": {"type": "string"},
-              "city": {"type": "string"},
-              "state": {"type": "string"},
-              "zip": {"type": "string"},
-              "country": {"type": "string"}
-          }
-        },
-        "paymentMethods": {
-          "type": "array",
-          "description": "Payment methods associated with a user",
-          "items": {
-            "type": "string"
-          }
-        },
-        "isPro": {
-            "type": "boolean",
-            "description": "Indicates if the user has a Pro subscription."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "email"
+        "userId",
+        "companyName"
       ]
     },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents an order placed by a user.",
+      "description": "Represents an order placed on the MongoMarket platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Order entity."
+          "description": "Unique identifier for the order."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Order)"
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Order)"
         },
         "orderDate": {
           "type": "string",
-          "description": "The date and time the order was placed.",
+          "description": "Date when the order was placed.",
           "format": "date-time"
         },
         "totalAmount": {
           "type": "number",
-          "description": "The total amount of the order."
+          "description": "Total amount of the order."
         },
         "status": {
           "type": "string",
-          "description": "The current status of the order (e.g., pending, processing, shipped, delivered)."
+          "description": "Status of the order (e.g., pending, processing, shipped, delivered)."
         },
         "orderItems": {
           "type": "array",
-          "description": "List of items in this order",
+          "description": "List of order items.",
           "items": {
             "type": "string"
           }
@@ -185,7 +178,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the OrderItem entity."
+          "description": "Unique identifier for the order item."
         },
         "orderId": {
           "type": "string",
@@ -197,11 +190,11 @@
         },
         "quantity": {
           "type": "number",
-          "description": "The quantity of the product in the order item."
+          "description": "Quantity of the product in the order item."
         },
         "price": {
           "type": "number",
-          "description": "The price of the order item"
+          "description": "Price of the product at the time of the order."
         }
       },
       "required": [
@@ -211,49 +204,12 @@
         "quantity",
         "price"
       ]
-    },
-    "ChatMessage": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ChatMessage",
-      "type": "object",
-      "description": "Represents a chat message in a live session.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ChatMessage entity."
-        },
-        "senderId": {
-          "type": "string",
-          "description": "The ID of the user who sent the message."
-        },
-        "senderName": {
-          "type": "string",
-          "description": "The display name of the sender."
-        },
-        "text": {
-          "type": "string",
-          "description": "The content of the chat message."
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "The server-side timestamp of when the message was sent.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "senderId",
-        "senderName",
-        "text",
-        "timestamp"
-      ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous",
-      "google"
+      "anonymous"
     ]
   },
   "firestore": {
@@ -265,24 +221,28 @@
           "schema": {
             "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores user profiles. Access is restricted to the user themselves.",
+          "description": "Stores user profile information. The `userId` parameter matches the Firebase Authentication UID, establishing ownership. Includes the id of the user's document.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier for the user."
+              "description": "The unique identifier for the user, matching the Firebase Authentication UID."
             }
           ]
         }
       },
       {
-        "path": "/suppliers/{supplierId}",
+        "path": "/userProfiles/{userId}/suppliers/{supplierId}",
         "definition": {
           "entityName": "Supplier",
           "schema": {
             "$ref": "#/backend/entities/Supplier"
           },
-          "description": "Stores supplier profiles. Access is restricted to the supplier.",
+          "description": "Stores supplier information related to a user. Nested under the `/userProfiles/{userId}` collection to establish ownership. The `userId` field in the `Supplier` document must match the `userId` in the path.",
           "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, matching the Firebase Authentication UID."
+            },
             {
               "name": "supplierId",
               "description": "The unique identifier for the supplier."
@@ -291,14 +251,18 @@
         }
       },
       {
-        "path": "/products/{productId}",
+        "path": "/suppliers/{supplierId}/products/{productId}",
         "definition": {
           "entityName": "Product",
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores product information. Open to the public for listing, but create/update restricted to authorized users or roles.",
+          "description": "Stores product information for a supplier.  Nested under the `/suppliers/{supplierId}` collection to establish ownership.  Includes denormalized `supplierId` to enforce supplier/product relationship. The `supplierId` field in the `Product` document must match the `supplierId` in the path.",
           "params": [
+            {
+              "name": "supplierId",
+              "description": "The unique identifier for the supplier."
+            },
             {
               "name": "productId",
               "description": "The unique identifier for the product."
@@ -313,11 +277,11 @@
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores order information. Orders are owned by users.",
+          "description": "Stores order information for a user.  Nested under the `/userProfiles/{userId}` collection to establish ownership.  The `userId` field in the `Order` document must match the `userId` in the path.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier for the user."
+              "description": "The unique identifier for the user, matching the Firebase Authentication UID."
             },
             {
               "name": "orderId",
@@ -333,11 +297,11 @@
           "schema": {
             "$ref": "#/backend/entities/OrderItem"
           },
-          "description": "Stores order items. Order items are owned by orders.",
+          "description": "Stores order item information for an order. Nested under the `/userProfiles/{userId}/orders/{orderId}` collection to establish ownership. The `orderId` field in the `OrderItem` document must match the `orderId` in the path.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier for the user."
+              "description": "The unique identifier for the user, matching the Firebase Authentication UID."
             },
             {
               "name": "orderId",
@@ -349,28 +313,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/liveSessions/{sessionId}/messages/{messageId}",
-        "definition": {
-          "entityName": "ChatMessage",
-          "schema": {
-            "$ref": "#/backend/entities/ChatMessage"
-          },
-          "description": "Stores chat messages for a specific live session. Publicly readable but only authenticated users can write.",
-          "params": [
-            {
-              "name": "sessionId",
-              "description": "The unique identifier for the live session."
-            },
-            {
-              "name": "messageId",
-              "description": "The unique identifier for the chat message."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the MongoMarket application, emphasizing security, scalability, and ease of management. It follows a hierarchical structure for user-owned data and utilizes denormalization for authorization independence.  \n\n*   **UserProfiles:** User profiles are stored under `/userProfiles/{userId}`, ensuring that each user's data is isolated and access is restricted to the user themselves. Orders are stored as a subcollection of UserProfiles.\n*   **Products:** Products are stored under `/products/{productId}`.  Products have a `supplierId` field which is used to display products from specific suppliers.\n*   **Suppliers:** Supplier profiles are stored under `/suppliers/{supplierId}`, with access limited to the supplier and potentially admins.\n*   **Orders:** Orders are stored as a subcollection of user profiles under `/userProfiles/{userId}/orders/{orderId}`. This establishes clear ownership and simplifies security rules. Each order has an `orderItems` field.\n*   **OrderItems:** OrderItems are stored as a subcollection of orders under `/userProfiles/{userId}/orders/{orderId}/orderItems/{orderItemId}`. This establishes clear ownership and simplifies security rules. Each `orderItem` has a `productId` field.  This supports the QAP of allowing users to list all orders.\n\n**Authorization Independence:**\nAuthorization independence is achieved by avoiding the use of `get()` calls in security rules. This is accomplished by structuring data to enable path-based authorization. This means access control is determined by the document's location in the database hierarchy, rather than relying on data from other documents. For example, orders are stored as subcollections of users, allowing the system to enforce that only the user can access their own orders based on the path `/userProfiles/{userId}/orders/{orderId}`.\n\n**QAPs (Rules are not Filters):**\nThe structure is designed to support secure list operations (QAPs). Because ownership is based on path structure, listing user orders is very efficient and secure.\n\n**Denormalization**: There is not much denormalization in this example.  It might be useful to denormalize some data such as the supplier name in the `products` collection.  In such a case you would simply add a `supplierName` field to the `Product` entity."
+    "reasoning": "The Firestore structure is designed to ensure security, scalability, and ease of debugging, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. \n\n**Authorization Independence:**\nAuthorization independence is achieved through denormalization. For instance, the `suppliers/{supplierId}/products/{productId}` collection requires the `supplierId` to be a property in the `Product` documents themselves, in order to avoid `get()` calls in the security rules.\n\n**Structural Segregation:**\nThe structure separates user profiles and supplier data into distinct collections (`/userProfiles` and `/suppliers`) to maintain a homogeneous security posture within each collection. User-owned data is further segregated under `/users/{userId}` for private resources.\n\n**Access Modeling:**\n*   Private Data: User profiles are stored under the `/userProfiles/{userId}` path, providing path-based ownership. This allows straightforward security rules to restrict access to the profile owner.\n*   Hierarchical Paths for User-Owned Data: Supplier entities are nested under the user's document (`/userProfiles/{userId}/suppliers/{supplierId}`), establishing a clear ownership hierarchy. Products belonging to a supplier are nested under the supplier document (`/suppliers/{supplierId}/products/{productId}`).\n*   Collaborative Data: Not explicitly present in the MVP, but if collaborative features were added (e.g., shared product lists), a membership map (`members: {uid1: \"role\", uid2: \"role\"}`) would be used within the relevant document to manage access.\n*   Global Roles (DBAC): The application does not include global roles in the MVP.\n\n**QAPs (Rules are not Filters):**\nThe structure enables secure `list` operations by avoiding the need for filtering based on user roles within the rules. For example, listing products under a supplier is secure because the path `/suppliers/{supplierId}/products/{productId}` guarantees that only products belonging to that supplier are accessed.\n\n**Invariants:**\nThe structure supports the integrity of ownership through explicit parent-child relationships and path-based ownership. Timestamps (if implemented) can be enforced through rules. Denormalized data, such as copying a supplier's ID into their products, ensures data consistency without complex lookups.\n\nThe structure adheres to the principles outlined, promoting a secure, scalable, and debuggable Firebase application."
   }
 }
