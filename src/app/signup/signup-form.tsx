@@ -6,13 +6,17 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
+import { doc } from 'firebase/firestore';
+import { updateProfile } from 'firebase/auth';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/context/auth-context';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+
 
 const formSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères.'),
@@ -25,6 +29,7 @@ export function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
   const { signup } = useAuth();
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,18 +43,42 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-        await signup(values.email, values.password);
+        const userCredential = await signup(values.email, values.password);
+        const user = userCredential.user;
+
+        // Mettre à jour le nom d'affichage dans Firebase Auth
+        await updateProfile(user, { displayName: values.name });
+
+        // Créer le document de profil dans Firestore
+        const userProfileRef = doc(firestore, "userProfiles", user.uid);
+        const newUserProfile: Omit<UserProfile, 'id'> = {
+            name: values.name,
+            email: values.email,
+            phone: '',
+            address: {
+                street: '',
+                city: '',
+                state: '',
+                zip: '',
+                country: '',
+            },
+            isPro: false,
+        };
+        
+        // Utiliser la fonction non-bloquante pour créer le profil
+        setDocumentNonBlocking(userProfileRef, newUserProfile, {});
+
         toast({
             title: 'Compte créé avec succès',
             description: 'Vous allez être redirigé.',
         });
         router.push('/products');
+
     } catch (error: any) {
         let description = "Une erreur est survenue. Veuillez réessayer.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Cet email est peut-être déjà utilisé. Essayez de vous connecter.";
         } else {
-            // Affiche le code d'erreur réel pour un meilleur débogage
             description = `Une erreur est survenue : ${error.code || error.message}`;
         }
         toast({
