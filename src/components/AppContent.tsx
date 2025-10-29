@@ -52,25 +52,26 @@ export function AppContent({
   const router = useRouter();
   const pathname = usePathname();
 
-  const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname);
   const isAuthRoute = ['/login', '/signup'].includes(pathname);
 
-  useEffect(() => {
-    // Ne rien faire tant que l'état d'authentification n'est pas résolu
-    if (loading) {
-      return;
-    }
-
-    // CORRECTION : Rediriger uniquement si le chargement est terminé ET que l'utilisateur n'est pas valide
-    if (!loading && isProtectedRoute && (!user || user.isAnonymous)) {
-      router.push('/login');
-    }
+  // useEffect(() => {
+  //   // Ne rien faire tant que l'état d'authentification n'est pas résolu
+  //   if (loading) {
+  //     return;
+  //   }
     
-    // Rediriger si un utilisateur connecté essaie d'accéder aux pages de connexion/inscription
-    if (isAuthRoute && user && !user.isAnonymous) {
-      router.push('/products');
-    }
-  }, [user, loading, router, isProtectedRoute, pathname, isAuthRoute]);
+  //   const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname);
+
+  //   // CORRECTION : Rediriger uniquement si le chargement est terminé ET que l'utilisateur n'est pas valide
+  //   if (!loading && isProtectedRoute && (!user || user.isAnonymous)) {
+  //     router.push('/login');
+  //   }
+    
+  //   // Rediriger si un utilisateur connecté essaie d'accéder aux pages de connexion/inscription
+  //   if (isAuthRoute && user && !user.isAnonymous) {
+  //     router.push('/products');
+  //   }
+  // }, [user, loading, router, pathname, isAuthRoute]);
   
 
   if (isAuthRoute) {
@@ -83,9 +84,9 @@ export function AppContent({
   }
   
   // Affiche un loader sur les pages protégées si l'authentification est en cours
-  if (loading && isProtectedRoute) {
-      return <AppLoading />;
-  }
+  // if (loading && (pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products'].includes(pathname))) {
+  //     return <AppLoading />;
+  // }
 
 
   return (
