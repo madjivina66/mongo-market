@@ -2,16 +2,17 @@
 'use client';
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Check, Loader2, CreditCard, Smartphone } from "lucide-react";
-import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
-import type { UserProfile } from "@/lib/types";
-import { upgradeToPro } from "./actions";
-import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { doc } from "firebase/firestore";
+import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import type { UserProfile } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { upgradeToPro } from "./actions";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Check, Loader2, CreditCard, Smartphone } from "lucide-react";
 
 const featuresPro = [
   "Nombre de produits illimité",
@@ -27,10 +28,11 @@ const featuresFree = [
 ];
 
 export default function SubscriptionPage() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
+    
     const [isUpgrading, setIsUpgrading] = useState(false);
     const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
@@ -39,14 +41,22 @@ export default function SubscriptionPage() {
         return doc(firestore, 'userProfiles', user.uid);
     }, [firestore, user]);
 
-    const { data: profile } = useDoc<UserProfile>(userProfileRef);
+    const { data: profile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
+    const isLoading = authLoading || profileLoading;
     const isPro = profile?.isPro ?? false;
+
+    const handleSelectProPlan = () => {
+        if (!user || user.isAnonymous) {
+            router.push('/login');
+            return;
+        }
+        setShowPaymentOptions(true);
+    };
 
     const handleUpgrade = async () => {
         if (!user || user.isAnonymous) {
             toast({ title: "Erreur", description: "Vous devez être connecté pour passer à Pro.", variant: "destructive" });
-            router.push('/login');
             return;
         }
 
@@ -61,8 +71,8 @@ export default function SubscriptionPage() {
                 title: "Félicitations !",
                 description: "Vous êtes maintenant un membre Pro.",
             });
-            setShowPaymentOptions(false);
-            router.refresh();
+            setShowPaymentOptions(false); // Hide payment options on success
+            // La page se rafraîchira grâce au hook `useDoc` qui détecte le changement
         } catch(e: any) {
              toast({
                 title: "Erreur",
@@ -72,14 +82,21 @@ export default function SubscriptionPage() {
         } finally {
             setIsUpgrading(false);
         }
-    }
+    };
 
-    const handleShowPayments = () => {
-        if (!user || user.isAnonymous) {
-            router.push('/login');
-            return;
-        }
-        setShowPaymentOptions(true);
+    if (isLoading) {
+        return (
+            <div className="mx-auto max-w-4xl animate-pulse">
+                 <header className="mb-8 text-center">
+                    <div className="h-10 bg-muted rounded w-3/4 mx-auto"></div>
+                    <div className="h-6 bg-muted rounded w-1/2 mx-auto mt-4"></div>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="h-96 bg-muted rounded-lg"></div>
+                    <div className="h-96 bg-muted rounded-lg"></div>
+                </div>
+            </div>
+        )
     }
 
   return (
@@ -94,11 +111,12 @@ export default function SubscriptionPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className={!isPro ? "border-2 border-muted" : "border-2 border-primary shadow-lg"}>
+            {/* PLAN GRATUIT */}
+            <Card className={!isPro ? "border-2 border-primary shadow-lg" : "border-2 border-muted"}>
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <CardTitle className="font-headline">Plan Gratuit</CardTitle>
-                        {!isPro && <Badge variant="default">Plan actuel</Badge>}
+                        {!isPro && <Badge>Plan actuel</Badge>}
                     </div>
                     <CardDescription>Parfait pour commencer et découvrir la plateforme.</CardDescription>
                 </CardHeader>
@@ -107,52 +125,41 @@ export default function SubscriptionPage() {
                     <ul className="space-y-2">
                         {featuresFree.map((feature, index) => (
                             <li key={index} className="flex items-center gap-2">
-                                <Check className="h-5 w-5 text-primary" />
+                                <Check className="h-5 w-5 text-green-500" />
                                 <span className="text-muted-foreground">{feature}</span>
                             </li>
                         ))}
                     </ul>
-                     <Button variant="outline" className="w-full" disabled={!isPro}>
-                        {isPro ? "Passer au plan Gratuit" : "Votre plan actuel"}
-                    </Button>
+                     <Button variant="outline" className="w-full" disabled>Votre plan actuel</Button>
                 </CardContent>
             </Card>
 
-            <Card className={isPro ? "border-2 border-muted" : "border-2 border-primary shadow-lg"}>
+            {/* PLAN PRO */}
+            <Card className={isPro ? "border-2 border-primary shadow-lg" : "border-2 border-muted"}>
                 <CardHeader>
                      <div className="flex justify-between items-center">
                         <CardTitle className="font-headline">Plan Pro</CardTitle>
-                        {isPro && <Badge variant="default">Plan actuel</Badge>}
+                        {isPro && <Badge>Plan actuel</Badge>}
                     </div>
                     <CardDescription>Pour les commerçants sérieux qui veulent maximiser leur visibilité.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <p className="text-4xl font-bold">$19<span className="text-lg font-normal text-muted-foreground">/mois</span></p>
                      
-                     {isPro ? (
-                         <ul className="space-y-2">
-                            {featuresPro.map((feature, index) => (
-                                <li key={index} className="flex items-center gap-2">
-                                    <Check className="h-5 w-5 text-primary" />
-                                    <span>{feature}</span>
-                                </li>
-                            ))}
-                        </ul>
-                     ) : !showPaymentOptions ? (
-                        <>
-                            <ul className="space-y-2">
-                                {featuresPro.map((feature, index) => (
-                                    <li key={index} className="flex items-center gap-2">
-                                        <Check className="h-5 w-5 text-primary" />
-                                        <span>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Button onClick={handleShowPayments} className="w-full font-headline text-lg">
-                                Passer à Pro
-                            </Button>
-                        </>
-                     ) : (
+                    <ul className="space-y-2">
+                        {featuresPro.map((feature, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                                <Check className="h-5 w-5 text-primary" />
+                                <span>{feature}</span>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {isPro ? (
+                        <Button className="w-full font-headline text-lg" disabled>Vous êtes déjà Pro</Button>
+                    ) : !showPaymentOptions ? (
+                        <Button onClick={handleSelectProPlan} className="w-full font-headline text-lg">Passer à Pro</Button>
+                    ) : (
                         <div className="pt-4">
                             <h3 className="font-semibold text-center mb-4">Finaliser le paiement</h3>
                             <div className="space-y-3">
@@ -161,7 +168,7 @@ export default function SubscriptionPage() {
                                         {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         <CreditCard /> <span>Payer par carte</span>
                                     </div>
-                                    <p className="text-xs text-left text-primary-foreground/80 pl-8">Option sécurisée par Stripe.</p>
+                                    <p className="text-xs text-left text-primary-foreground/80 pl-8">Option sécurisée.</p>
                                 </Button>
                                 <Button onClick={handleUpgrade} size="lg" className="w-full justify-start gap-4 h-auto flex-col items-start py-3" variant="secondary" disabled={isUpgrading}>
                                     <div className="flex items-center gap-4">
@@ -177,16 +184,10 @@ export default function SubscriptionPage() {
                                     </div>
                                     <p className="text-xs text-left text-secondary-foreground/80 pl-8">Numéro : 66 78 96 04</p>
                                 </Button>
-                                <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => setShowPaymentOptions(false)}>Annuler</Button>
+                                <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => setShowPaymentOptions(false)} disabled={isUpgrading}>Annuler</Button>
                             </div>
                         </div>
-                     )}
-                     
-                     {isPro && (
-                        <Button className="w-full font-headline text-lg" disabled>
-                            Vous êtes déjà Pro
-                        </Button>
-                     )}
+                    )}
                 </CardContent>
             </Card>
         </div>
