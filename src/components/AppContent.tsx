@@ -73,20 +73,17 @@ export function AppContent({
   }, [user, loading, router, pathname, isAuthRoute, isProtectedRoute]);
   
 
+  if (loading) {
+    return <AppLoading />;
+  }
+
   if (isAuthRoute) {
       return (
-        <div className="flex min-h-screen items-center justify-center p-4">
-            {/* Afficher un loader si on est sur une page d'auth et que l'auth est en cours */}
-            {loading ? <AppLoading /> : children}
+        <div className="flex min-h-screen items-center justify-center p-4 animated-background">
+            {children}
         </div>
       )
   }
-  
-  // Affiche un loader sur les pages protégées si l'authentification est en cours
-  if (loading && isProtectedRoute) {
-      return <AppLoading />;
-  }
-
 
   return (
       <SidebarProvider>
@@ -98,7 +95,7 @@ export function AppContent({
           <MainNav />
           </SidebarContent>
       </Sidebar>
-      <SidebarInset>
+      <SidebarInset className="animated-background">
           <Header />
           <main className="flex-1 p-4 sm:p-6">
           {children}

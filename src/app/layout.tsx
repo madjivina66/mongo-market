@@ -25,7 +25,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className={`font-body antialiased animated-background ${inter.className}`}>
+      <body className={`font-body antialiased ${inter.className}`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
