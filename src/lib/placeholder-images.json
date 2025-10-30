@@ -3,74 +3,92 @@
     {
       "id": "tomatoes",
       "description": "Fresh red tomatoes on a vine.",
-      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1683008952375-410ae668e6b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcmVzaCUyMHRvbWF0b2VzfGVufDB8fHx8MTc2MTcxODgxNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "fresh tomatoes"
     },
     {
       "id": "carrots",
       "description": "A bunch of organic carrots with green tops.",
-      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1723476992266-2c4a787c7b32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvcmdhbmljJTIwY2Fycm90c3xlbnwwfHx8fDE3NjE4MTk2MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "organic carrots"
     },
     {
       "id": "apples",
       "description": "Crisp red apples in a basket.",
-      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1601236007883-e8c3079bebe0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyZWQlMjBhcHBsZXN8ZW58MHx8fHwxNzYxNzI4NzA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "red apples"
     },
     {
       "id": "bananas",
       "description": "A bunch of ripe yellow bananas.",
-      "imageUrl": "https://picsum.photos/seed/104/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1620036924477-c3d6e9ce36fc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyaXBlJTIwYmFuYW5hc3xlbnwwfHx8fDE3NjE3Mzg1MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "ripe bananas"
     },
     {
       "id": "steak",
       "description": "A thick-cut raw beef steak.",
-      "imageUrl": "https://picsum.photos/seed/105/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1704081628926-d64845e7ca93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyYXclMjBzdGVha3xlbnwwfHx8fDE3NjE4MTk2MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "raw steak"
     },
     {
       "id": "chicken-breast",
       "description": "Boneless, skinless chicken breasts.",
-      "imageUrl": "https://picsum.photos/seed/106/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1642497394469-188b0f4bcae6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGlja2VuJTIwYnJlYXN0fGVufDB8fHx8MTc2MTc1Mzk1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "chicken breast"
     },
     {
       "id": "milk",
       "description": "A glass bottle of fresh milk.",
-      "imageUrl": "https://picsum.photos/seed/107/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1635436338433-89747d0ca0ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtaWxrJTIwYm90dGxlfGVufDB8fHx8MTc2MTgxOTYwNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "milk bottle"
     },
     {
       "id": "cheese",
       "description": "A block of cheddar cheese.",
-      "imageUrl": "https://picsum.photos/seed/108/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1733297130540-0d3b325480cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaGVkZGFyJTIwY2hlZXNlfGVufDB8fHx8MTc2MTc1NDk5N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cheddar cheese"
     },
     {
       "id": "cinnamon",
       "description": "Cinnamon sticks and ground cinnamon.",
-      "imageUrl": "https://picsum.photos/seed/109/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1607430866111-3f2b5804f850?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2lubmFtb24lMjBzdGlja3N8ZW58MHx8fHwxNzYxODE5NjA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cinnamon sticks"
     },
     {
       "id": "paprika",
       "description": "A small bowl of red paprika powder.",
-      "imageUrl": "https://picsum.photos/seed/110/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1618515299844-7b810f9301df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYXByaWthJTIwcG93ZGVyfGVufDB8fHx8MTc2MTgxOTYwNHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "paprika powder"
     },
     {
-        "id": "lettuce",
-        "description": "A head of fresh green lettuce.",
-        "imageUrl": "https://picsum.photos/seed/111/600/400",
-        "imageHint": "green lettuce"
+      "id": "lettuce",
+      "description": "A head of fresh green lettuce.",
+      "imageUrl": "https://images.unsplash.com/photo-1657411658219-573d47e402c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxncmVlbiUyMGxldHR1Y2V8ZW58MHx8fHwxNzYxNzM4NTIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green lettuce"
     },
     {
-        "id": "oranges",
-        "description": "A pile of juicy oranges.",
-        "imageUrl": "https://picsum.photos/seed/112/600/400",
-        "imageHint": "juicy oranges"
+      "id": "oranges",
+      "description": "A pile of juicy oranges.",
+      "imageUrl": "https://images.unsplash.com/photo-1704514282891-6573f426aa06?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxqdWljeSUyMG9yYW5nZXN8ZW58MHx8fHwxNzYxNzM4NTIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "juicy oranges"
+    },
+    {
+      "id": "laptop",
+      "description": "A modern silver laptop open on a desk.",
+      "imageUrl": "https://images.unsplash.com/photo-1619606619096-c759b30552bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBsYXB0b3B8ZW58MHx8fHwxNzYxNzYzMzM0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern laptop"
+    },
+    {
+      "id": "cereals",
+      "description": "A bowl of breakfast cereals with milk.",
+      "imageUrl": "https://images.unsplash.com/photo-1577986843638-0b51a573b4c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxicmVha2Zhc3QlMjBjZXJlYWxzfGVufDB8fHx8MTc2MTgxOTYwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "breakfast cereals"
+    },
+    {
+      "id": "backpack",
+      "description": "A stylish and durable backpack for daily use.",
+      "imageUrl": "https://images.unsplash.com/photo-1502790321135-31874fc22684?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8c3R5bGlzaCUyMGJhY2twYWNrfGVufDB8fHx8MTc2MTgxOTYwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stylish backpack"
     }
   ]
 }

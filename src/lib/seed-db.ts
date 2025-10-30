@@ -34,9 +34,9 @@ const productData: Omit<Product, 'id' | 'sellerId'>[] = [
     { name: 'Lait Entier', description: 'Bouteille de lait frais entier pasteurisé.', price: 1.80, category: 'Produits laitiers', imageUrl: PlaceHolderImages[6].imageUrl, imageHint: PlaceHolderImages[6].imageHint },
     { name: 'Fromage Cheddar', description: 'Bloc de fromage cheddar affiné.', price: 6.00, category: 'Produits laitiers', imageUrl: PlaceHolderImages[7].imageUrl, imageHint: PlaceHolderImages[7].imageHint },
     { name: 'Bâtons de Cannelle', description: 'Bâtons de cannelle aromatiques pour la pâtisserie et les boissons.', price: 4.50, category: 'Épices', imageUrl: PlaceHolderImages[8].imageUrl, imageHint: PlaceHolderImages[8].imageHint },
-    { name: 'Poudre de Paprika', description: 'Paprika fumé pour relever vos plats.', price: 3.00, category: 'Épices', imageUrl: PlaceHolderImages[9].imageUrl, imageHint: PlaceHolderImages[9].imageHint },
-    { name: 'Laitue Iceberg', description: 'Tête de laitue fraîche et croquante.', price: 1.50, category: 'Légumes', imageUrl: PlaceHolderImages[10].imageUrl, imageHint: PlaceHolderImages[10].imageHint },
-    { name: 'Oranges de Sicile', description: 'Oranges juteuses et pleines de vitamine C.', price: 3.20, category: 'Fruits', imageUrl: PlaceHolderImages[11].imageUrl, imageHint: PlaceHolderImages[11].imageHint },
+    { name: 'Céréales du Matin', description: 'Céréales croquantes pour un petit déjeuner sain.', price: 5.20, category: 'Épices', imageUrl: PlaceHolderImages[13].imageUrl, imageHint: PlaceHolderImages[13].imageHint },
+    { name: 'Ordinateur Portable Pro', description: 'Un ordinateur portable puissant pour le travail et les loisirs.', price: 1200.00, category: 'Électronique', imageUrl: PlaceHolderImages[12].imageUrl, imageHint: PlaceHolderImages[12].imageHint },
+    { name: 'Sac à Dos Urbain', description: 'Un sac à dos élégant et durable pour un usage quotidien.', price: 75.50, category: 'Vêtements', imageUrl: PlaceHolderImages[14].imageUrl, imageHint: PlaceHolderImages[14].imageHint },
 ];
 
 
