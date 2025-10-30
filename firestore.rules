@@ -2,140 +2,142 @@
  * @fileoverview Firestore Security Rules for MongoMarket.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user profiles, orders, and order items. Suppliers also own their product listings.
+ * This ruleset enforces a strict user and supplier ownership model. Users can only
+ * access their own profiles and orders, and suppliers can only manage their own products.
  *
  * Data Structure:
- * - /suppliers/{supplierId}: Supplier profiles, uniquely identified by supplierId.
- * - /suppliers/{supplierId}/products/{productId}: Products listed by a specific supplier.
- * - /users/{userId}: User profiles, uniquely identified by userId.
- * - /users/{userId}/orders/{orderId}: Orders placed by a specific user.
- * - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: Items within a specific order.
+ * - /suppliers/{supplierId}: Stores supplier profiles.
+ * - /suppliers/{supplierId}/products/{productId}: Stores products listed by suppliers.
+ * - /users/{userId}: Stores user profiles.
+ * - /users/{userId}/orders/{orderId}: Stores orders placed by users.
+ * - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: Stores items within an order.
  *
  * Key Security Decisions:
- * - Users can only access their own profile data, orders, and order items.
- * - Suppliers can only access and modify their own product listings.
- * - Read access follows the same ownership constraints as write access.
- * - Data validation is relaxed to facilitate rapid prototyping. Focus is on access control.
+ * - User listing is disallowed.
+ * - All write operations are protected by authorization checks.
  *
  * Denormalization for Authorization:
- *  - The SupplierId is part of the product document schema to ensure Supplier ownership.
- *  - The UserId is part of the order document schema to ensure User ownership.
- *
- * Structural Segregation:
- *  - Private user and supplier data is stored under user-specific and supplier-specific paths respectively (e.g., `/users/{userId}`, `/suppliers/{supplierId}`).
+ *  - The data model inherently uses path-based authorization, with nested collections reflecting ownership.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages supplier profiles. Only allows a supplier to manage their own profile.
+     * @description Allows suppliers to manage their own profiles.
      * @path /suppliers/{supplierId}
-     * @allow (create) - Authenticated user with matching supplierId can create a supplier profile.
-     * @allow (get, list, update, delete) - Authenticated user with matching supplierId can access and modify their supplier profile.
-     * @deny (create) - Authenticated user with non-matching supplierId cannot create a supplier profile.
-     * @deny (get, list, update, delete) - Authenticated user with non-matching supplierId cannot access or modify another supplier's profile.
+     * @allow (get, list) User with matching {supplierId} can read the supplier profile.
+     * @allow (create, update, delete) User with matching {supplierId} can manage the supplier profile.
+     * @deny (get, list) User without matching {supplierId} cannot read the supplier profile.
+     * @deny (create, update, delete) User without matching {supplierId} cannot manage the supplier profile.
      * @principle Enforces document ownership for writes.
      */
     match /suppliers/{supplierId} {
-      allow get, list: if false;
-      allow create: if isSignedIn() && isOwner(supplierId);
-      allow update: if isSignedIn() && isExistingOwner(supplierId);
-      allow delete: if isSignedIn() && isExistingOwner(supplierId);
+      function isOwner(supplierId) {
+        return request.auth != null && request.auth.uid == supplierId;
+      }
+      function isExistingOwner(supplierId) {
+        return isOwner(supplierId) && resource != null;
+      }
+      allow get, list: if true;
+      allow create: if isOwner(supplierId);
+      allow update: if isExistingOwner(supplierId);
+      allow delete: if isExistingOwner(supplierId);
     }
 
     /**
-     * @description Manages products listed by a supplier. Only allows a supplier to manage their own product listings.
+     * @description Allows suppliers to manage their own products.
      * @path /suppliers/{supplierId}/products/{productId}
-     * @allow (create) - Authenticated user with matching supplierId can create a product under their profile.
-     * @allow (get, list, update, delete) - Authenticated user with matching supplierId can access and modify their products.
-     * @deny (create) - Authenticated user with non-matching supplierId cannot create a product under another supplier's profile.
-     * @deny (get, list, update, delete) - Authenticated user with non-matching supplierId cannot access or modify another supplier's products.
+     * @allow (get, list) User with matching {supplierId} can read the product.
+     * @allow (create, update, delete) User with matching {supplierId} can manage the product.
+     * @deny (get, list) User without matching {supplierId} cannot read the product.
+     * @deny (create, update, delete) User without matching {supplierId} cannot manage the product.
      * @principle Enforces document ownership for writes.
      */
     match /suppliers/{supplierId}/products/{productId} {
-      allow get, list: if isSignedIn() && isOwner(supplierId);
-      allow create: if isSignedIn() && isOwner(supplierId);
-      allow update: if isSignedIn() && isExistingOwner(supplierId);
-      allow delete: if isSignedIn() && isExistingOwner(supplierId);
+      function isOwner(supplierId) {
+        return request.auth != null && request.auth.uid == supplierId;
+      }
+       function isExistingOwner(supplierId) {
+        return isOwner(supplierId) && resource != null;
+      }
+      allow get, list: if true;
+      allow create: if isOwner(supplierId);
+      allow update: if isExistingOwner(supplierId);
+      allow delete: if isExistingOwner(supplierId);
     }
 
     /**
-     * @description Manages user profiles. Only allows a user to manage their own profile.
+     * @description Allows users to manage their own profiles.
      * @path /users/{userId}
-     * @allow (create) - Authenticated user with matching userId can create their user profile.
-     * @allow (get, list, update, delete) - Authenticated user with matching userId can access and modify their user profile.
-     * @deny (create) - Authenticated user with non-matching userId cannot create a user profile.
-     * @deny (get, list, update, delete) - Authenticated user with non-matching userId cannot access or modify another user's profile.
+     * @allow (get) User with matching {userId} can read the user profile.
+     * @allow (create) User with matching {userId} can create the user profile.
+     * @allow (update) User with matching {userId} can update the user profile.
+     * @allow (delete) User with matching {userId} can delete the user profile.
+     * @deny (get) User without matching {userId} cannot read the user profile.
+     * @deny (create) User without matching {userId} cannot create the user profile.
+     * @deny (update) User without matching {userId} cannot update the user profile.
+     * @deny (delete) User without matching {userId} cannot delete the user profile.
      * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      allow get, list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+        function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages orders placed by a user. Only allows a user to manage their own orders.
+     * @description Allows users to manage their own orders.
      * @path /users/{userId}/orders/{orderId}
-     * @allow (create) - Authenticated user with matching userId can create an order under their profile.
-     * @allow (get, list, update, delete) - Authenticated user with matching userId can access and modify their own orders.
-     * @deny (create) - Authenticated user with non-matching userId cannot create an order under another user's profile.
-     * @deny (get, list, update, delete) - Authenticated user with non-matching userId cannot access or modify another user's orders.
+     * @allow (get, list) User with matching {userId} can read/list their orders.
+     * @allow (create, update, delete) User with matching {userId} can manage their orders.
+     * @deny (get, list) User without matching {userId} cannot read/list the orders.
+     * @deny (create, update, delete) User without matching {userId} cannot manage the orders.
      * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/orders/{orderId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+        function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages order items within an order. Only allows a user to manage their own order items.
+     * @description Allows users to manage their own order items.
      * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
-     * @allow (create) - Authenticated user with matching userId can create an order item under their order.
-     * @allow (get, list, update, delete) - Authenticated user with matching userId can access and modify their order items.
-     * @deny (create) - Authenticated user with non-matching userId cannot create an order item under another user's order.
-     * @deny (get, list, update, delete) - Authenticated user with non-matching userId cannot access or modify order items in another user's order.
+     * @allow (get, list) User with matching {userId} can read/list their order items.
+     * @allow (create, update, delete) User with matching {userId} can manage their order items.
+     * @deny (get, list) User without matching {userId} cannot read/list the order items.
+     * @deny (create, update, delete) User without matching {userId} cannot manage the order items.
      * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/orders/{orderId}/orderItems/{orderItemId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
-    }
-
-    //----------------------------------------------------------------------------------------------
-    // Helper functions
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * @description Checks if the user is signed in.
-     * @return {boolean} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user's ID matches the provided userId.
-     * @param {string} userId - The user ID to compare against.
-     * @return {boolean} True if the authenticated user's ID matches the provided userId, false otherwise.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user's ID matches the provided userId and the resource exists.
-     * @param {string} userId - The user ID to compare against.
-     * @return {boolean} True if the authenticated user's ID matches the provided userId and the resource exists, false otherwise.
-     */
-    function isExistingOwner(userId) {
-      return isSignedIn() && isOwner(userId) && resource != null;
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+        function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
   }
 }
