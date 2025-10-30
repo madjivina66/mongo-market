@@ -79,7 +79,7 @@ export function AppContent({
 
   if (isAuthRoute) {
       return (
-        <div className="flex min-h-screen items-center justify-center p-4 animated-background">
+        <div className="flex min-h-screen items-center justify-center p-4">
             {children}
         </div>
       )
@@ -95,7 +95,7 @@ export function AppContent({
           <MainNav />
           </SidebarContent>
       </Sidebar>
-      <SidebarInset className="animated-background">
+      <SidebarInset>
           <Header />
           <main className="flex-1 p-4 sm:p-6">
           {children}
