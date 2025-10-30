@@ -1,143 +1,146 @@
-/**
- * @fileoverview Firestore Security Rules for MongoMarket.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user and supplier ownership model. Users can only
- * access their own profiles and orders, and suppliers can only manage their own products.
- *
- * Data Structure:
- * - /suppliers/{supplierId}: Stores supplier profiles.
- * - /suppliers/{supplierId}/products/{productId}: Stores products listed by suppliers.
- * - /users/{userId}: Stores user profiles.
- * - /users/{userId}/orders/{orderId}: Stores orders placed by users.
- * - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: Stores items within an order.
- *
- * Key Security Decisions:
- * - User listing is disallowed.
- * - All write operations are protected by authorization checks.
- *
- * Denormalization for Authorization:
- *  - The data model inherently uses path-based authorization, with nested collections reflecting ownership.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows suppliers to manage their own profiles.
+     * @description Grants access to supplier profiles based on supplier ID.
      * @path /suppliers/{supplierId}
-     * @allow (get, list) User with matching {supplierId} can read the supplier profile.
-     * @allow (create, update, delete) User with matching {supplierId} can manage the supplier profile.
-     * @deny (get, list) User without matching {supplierId} cannot read the supplier profile.
-     * @deny (create, update, delete) User without matching {supplierId} cannot manage the supplier profile.
-     * @principle Enforces document ownership for writes.
+     * @allow (get, list): Allows any signed-in user to read supplier profiles.
+     * @allow (create, update, delete): Only the supplier with matching ID can modify their profile.
+     * @deny (create): Denies creation if the supplier ID in the request does not match the path.
+     * @deny (update): Denies update if the supplier does not exist.
+     * @principle Enforces document ownership for writes and self-creation for supplier profiles.
      */
     match /suppliers/{supplierId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
       function isOwner(supplierId) {
-        return request.auth != null && request.auth.uid == supplierId;
+        return request.auth.uid == supplierId;
       }
+
       function isExistingOwner(supplierId) {
-        return isOwner(supplierId) && resource != null;
+        return isOwner(supplierId) && exists(resource);
       }
-      allow get, list: if true;
-      allow create: if isOwner(supplierId);
-      allow update: if isExistingOwner(supplierId);
-      allow delete: if isExistingOwner(supplierId);
+
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(supplierId);
+      allow update: if isSignedIn() && isExistingOwner(supplierId);
+      allow delete: if isSignedIn() && isExistingOwner(supplierId);
     }
 
     /**
-     * @description Allows suppliers to manage their own products.
+     * @description Grants access to products listed by a supplier, based on the supplier ID.
      * @path /suppliers/{supplierId}/products/{productId}
-     * @allow (get, list) User with matching {supplierId} can read the product.
-     * @allow (create, update, delete) User with matching {supplierId} can manage the product.
-     * @deny (get, list) User without matching {supplierId} cannot read the product.
-     * @deny (create, update, delete) User without matching {supplierId} cannot manage the product.
-     * @principle Enforces document ownership for writes.
+     * @allow (get, list): Allows any signed-in user to read products.
+     * @allow (create, update, delete): Only the supplier with the matching supplierId can modify their products.
+     * @deny (create): Denies creation if the supplier ID in the request does not match the path.
+     * @deny (update): Denies update if the supplier does not exist.
+     * @principle Enforces document ownership for writes and self-creation for supplier profiles.
      */
     match /suppliers/{supplierId}/products/{productId} {
-      function isOwner(supplierId) {
-        return request.auth != null && request.auth.uid == supplierId;
+      function isSignedIn() {
+        return request.auth != null;
       }
-       function isExistingOwner(supplierId) {
-        return isOwner(supplierId) && resource != null;
+
+      function isSupplierOwner(supplierId) {
+        return request.auth.uid == supplierId;
       }
-      allow get, list: if true;
-      allow create: if isOwner(supplierId);
-      allow update: if isExistingOwner(supplierId);
-      allow delete: if isExistingOwner(supplierId);
+
+      function isExistingSupplierOwner(supplierId) {
+        return isSupplierOwner(supplierId) && exists(resource);
+      }
+
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isSupplierOwner(supplierId);
+      allow update: if isSignedIn() && isExistingSupplierOwner(supplierId);
+      allow delete: if isSignedIn() && isExistingSupplierOwner(supplierId);
     }
 
     /**
-     * @description Allows users to manage their own profiles.
+     * @description Grants access to user profiles based on user ID.
      * @path /users/{userId}
-     * @allow (get) User with matching {userId} can read the user profile.
-     * @allow (create) User with matching {userId} can create the user profile.
-     * @allow (update) User with matching {userId} can update the user profile.
-     * @allow (delete) User with matching {userId} can delete the user profile.
-     * @deny (get) User without matching {userId} cannot read the user profile.
-     * @deny (create) User without matching {userId} cannot create the user profile.
-     * @deny (update) User without matching {userId} cannot update the user profile.
-     * @deny (delete) User without matching {userId} cannot delete the user profile.
-     * @principle Enforces document ownership for writes.
+     * @allow (get, list): Allows the user with matching ID to read their own profile. Listing all users is denied.
+     * @allow (create, update, delete): Only the user with matching ID can create, update, or delete their profile.
+     * @deny (create): Denies creation if the user ID in the request does not match the path.
+     * @deny (update): Denies update if the user does not exist.
+     * @principle Enforces document ownership for writes and self-creation for user profiles.
      */
     match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
       function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+        return request.auth.uid == userId;
       }
-        function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && exists(resource);
       }
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false; // Prevent listing all user documents.
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Allows users to manage their own orders.
+     * @description Grants access to orders placed by a user, based on the user ID.
      * @path /users/{userId}/orders/{orderId}
-     * @allow (get, list) User with matching {userId} can read/list their orders.
-     * @allow (create, update, delete) User with matching {userId} can manage their orders.
-     * @deny (get, list) User without matching {userId} cannot read/list the orders.
-     * @deny (create, update, delete) User without matching {userId} cannot manage the orders.
-     * @principle Enforces document ownership for writes.
+     * @allow (get, list): Allows the user with matching ID to read their own orders.
+     * @allow (create, update, delete): Only the user with matching ID can create, update, or delete their orders.
+     * @deny (create): Denies creation if the user ID in the request does not match the path.
+     * @deny (update): Denies update if the order does not exist.
+     * @principle Enforces document ownership for writes and self-creation for user orders.
      */
     match /users/{userId}/orders/{orderId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
       function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+        return request.auth.uid == userId;
       }
-        function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && exists(resource);
       }
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+
+      allow get, list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Allows users to manage their own order items.
+     * @description Grants access to order items within an order, based on the user and order IDs.
      * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
-     * @allow (get, list) User with matching {userId} can read/list their order items.
-     * @allow (create, update, delete) User with matching {userId} can manage their order items.
-     * @deny (get, list) User without matching {userId} cannot read/list the order items.
-     * @deny (create, update, delete) User without matching {userId} cannot manage the order items.
-     * @principle Enforces document ownership for writes.
+     * @allow (get, list): Allows the user with matching ID to read their own order items.
+     * @allow (create, update, delete): Only the user with matching ID can create, update, or delete their order items.
+     * @deny (create): Denies creation if the user ID in the request does not match the path.
+     * @deny (update): Denies update if the order item does not exist.
+     * @principle Enforces document ownership for writes and self-creation for user order items.
      */
     match /users/{userId}/orders/{orderId}/orderItems/{orderItemId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
       function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+        return request.auth.uid == userId;
       }
-        function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && exists(resource);
       }
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+
+      allow get, list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
   }
 }
