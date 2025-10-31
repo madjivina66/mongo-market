@@ -11,13 +11,15 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
+    
+    function isSignedUpUser() {
+      return isSignedIn() && request.auth.token.firebase.sign_in_provider != "anonymous";
+    }
 
     // Collection: userProfiles
     match /userProfiles/{userId} {
-      // Un utilisateur peut lire son propre profil
-      // Un utilisateur peut créer son propre profil
-      // Un utilisateur peut mettre à jour son propre profil
-      allow get, create, update: if isSignedIn() && isOwner(userId);
+      // Un utilisateur peut lire, créer et mettre à jour son propre profil
+      allow read, create, update: if isOwner(userId);
       // Personne ne peut lister tous les profils ou supprimer un profil
       allow list, delete: if false;
     }
@@ -27,27 +29,25 @@ service cloud.firestore {
       // Tout le monde peut voir les produits
       allow get, list: if true;
       
-      // Seuls les utilisateurs connectés peuvent créer des produits
-      allow create: if isSignedIn();
+      // Seuls les utilisateurs inscrits (non-anonymes) peuvent créer des produits
+      allow create: if isSignedUpUser();
 
       // Seul le vendeur propriétaire peut mettre à jour ou supprimer son produit
-      allow update, delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
+      allow update, delete: if isSignedUpUser() && resource.data.sellerId == request.auth.uid;
     }
 
     // Sub-Collection: orders (nested under userProfiles)
     match /userProfiles/{userId}/orders/{orderId} {
       // L'utilisateur ne peut voir, créer, mettre à jour ou supprimer que ses propres commandes
-      allow get, list, create, update, delete: if isSignedIn() && isOwner(userId);
+      allow get, list, create, update, delete: if isOwner(userId);
     }
     
     // Sub-Collection: messages (nested under liveSessions)
     match /liveSessions/{sessionId}/messages/{messageId} {
         // Tout le monde peut lire les messages
         allow get, list: if true;
-        // Seuls les utilisateurs connectés (non-anonymes) peuvent écrire des messages
-        allow create: if isSignedIn() && request.auth.token.firebase.sign_in_provider != "anonymous";
+        // Seuls les utilisateurs inscrits (non-anonymes) peuvent écrire des messages
+        allow create: if isSignedUpUser();
     }
   }
 }
-
-    
