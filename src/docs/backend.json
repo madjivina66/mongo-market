@@ -266,7 +266,6 @@
             "$ref": "#/backend/entities/UserProfile"
           },
           "description": "Stores user profiles. Read access is public, and write access is restricted to the user themselves.",
-          "rules": "allow read; allow write: if request.auth.uid == userId;",
           "params": [
             {
               "name": "userId",
@@ -377,3 +376,5 @@
 }
 
   
+
+    
