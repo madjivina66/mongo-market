@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,11 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart, Tv } from 'lucide-react';
 import { useAuth, useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, CollectionReference, type DocumentData } from 'firebase/firestore';
-import type { ChatMessage, WithId, Product } from '@/lib/types';
+import type { ChatMessage, WithId, Product, UserProfile } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
 import { useCart } from '@/context/cart-context';
+import type { User } from 'firebase/auth';
 
 import {
   Dialog,
@@ -38,9 +40,8 @@ import { FeaturedProductsManager } from './featured-products-manager';
 
 const LIVE_SESSION_ID = "main_session";
 
-function LiveChat() {
-  const firestore = useFirestore(); // Correct hook
-  const { user } = useAuth();
+function LiveChat({ user }: { user: User | null }) {
+  const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +73,6 @@ function LiveChat() {
       timestamp: serverTimestamp(),
     };
 
-    // Use the correctly imported non-blocking function
     await addDocumentNonBlocking(messagesRef as CollectionReference<DocumentData>, messageData);
     setNewMessage('');
   };
@@ -392,7 +392,7 @@ export default function LivePage() {
             </div>
 
             <div className="space-y-8">
-            <LiveChat />
+            <LiveChat user={user} />
             <div className="space-y-4">
                 {isSeller && <ProductManagerDialog />}
                 <FeaturedProducts />
