@@ -20,8 +20,10 @@ service cloud.firestore {
 
     // Collection: userProfiles
     match /userProfiles/{userId} {
-      // Un utilisateur peut lire, créer et mettre à jour son propre profil
-      allow read, create, update: if isOwner(userId);
+      // Un utilisateur peut créer son propre profil.
+      allow create: if isOwner(userId);
+      // Un utilisateur peut lire et mettre à jour son propre profil
+      allow read, update: if isOwner(userId);
       // Personne ne peut lister tous les profils ou supprimer un profil
       allow list, delete: if false;
     }
