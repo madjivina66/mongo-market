@@ -260,7 +260,6 @@ export default function LivePage() {
       streamRef.current = stream;
       setHasCameraPermission(true);
       setIsLive(true);
-      // L'assignation se fera dans le useEffect
     } catch (error) {
       console.error('Erreur d\'accès aux médias:', error);
       setHasCameraPermission(false);
@@ -273,15 +272,13 @@ export default function LivePage() {
     }
   };
 
-  // Ce useEffect gère l'assignation du flux vidéo à l'élément <video>
   useEffect(() => {
-    if (isLive && streamRef.current && videoRef.current) {
+    if (streamRef.current && videoRef.current) {
       videoRef.current.srcObject = streamRef.current;
     }
-  }, [isLive]); // Il se déclenche quand isLive passe à true
+  }, [isLive, hasCameraPermission]);
 
   useEffect(() => {
-    // Cleanup stream on component unmount
     return () => {
       stopStream();
     };
@@ -384,7 +381,7 @@ export default function LivePage() {
                     <AlertTitle>Accès à la caméra et au micro requis</AlertTitle>
                     <AlertDescription>
                         Veuillez autoriser l'accès pour démarrer votre diffusion.
-                    </Description>
+                    </AlertDescription>
                     </Alert>
                 )}
                 </CardContent>
