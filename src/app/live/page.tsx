@@ -9,7 +9,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart, Tv } from 'lucide-react';
 import { useAuth, useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, serverTimestamp, CollectionReference } from 'firebase/firestore';
+import { collection, query, orderBy, serverTimestamp, CollectionReference, type DocumentData } from 'firebase/firestore';
 import type { ChatMessage, WithId, Product } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -39,7 +39,7 @@ import { FeaturedProductsManager } from './featured-products-manager';
 const LIVE_SESSION_ID = "main_session";
 
 function LiveChat() {
-  const firestore = useFirestore();
+  const firestore = useFirestore(); // Correct hook
   const { user } = useAuth();
   const [newMessage, setNewMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -72,7 +72,8 @@ function LiveChat() {
       timestamp: serverTimestamp(),
     };
 
-    addDocumentNonBlocking(messagesRef as CollectionReference, messageData);
+    // Use the correctly imported non-blocking function
+    await addDocumentNonBlocking(messagesRef as CollectionReference<DocumentData>, messageData);
     setNewMessage('');
   };
 
@@ -81,6 +82,8 @@ function LiveChat() {
     const date = timestamp.toDate();
     return formatDistanceToNow(date, { addSuffix: true, locale: fr });
   };
+  
+  const isUserAllowedToChat = user && !user.isAnonymous;
 
   return (
      <Card>
@@ -103,13 +106,13 @@ function LiveChat() {
           </div>
           <form onSubmit={handleSendMessage} className="mt-4 flex gap-2">
             <Textarea 
-              placeholder={user && !user.isAnonymous ? "Écrivez un message..." : "Connectez-vous pour chatter"}
+              placeholder={isUserAllowedToChat ? "Écrivez un message..." : "Connectez-vous pour chatter"}
               className="flex-1"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              disabled={!user || user.isAnonymous}
+              disabled={!isUserAllowedToChat}
             />
-            <Button type="submit" size="icon" disabled={!user || user.isAnonymous || newMessage.trim() === ''}><Send className="h-4 w-4" /></Button>
+            <Button type="submit" size="icon" disabled={!isUserAllowedToChat || newMessage.trim() === ''}><Send className="h-4 w-4" /></Button>
           </form>
         </CardContent>
       </Card>

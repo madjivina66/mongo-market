@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   
@@ -10,6 +11,11 @@ service cloud.firestore {
 
     function isOwner(userId) {
       return request.auth.uid == userId;
+    }
+
+    // Un utilisateur authentifié (non anonyme)
+    function isSignedUpUser() {
+      return isSignedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
     // Collection: userProfiles
@@ -26,16 +32,16 @@ service cloud.firestore {
       allow get, list: if true;
       
       // Seuls les utilisateurs inscrits (non-anonymes) peuvent créer des produits
-      allow create: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow create: if isSignedUpUser();
 
       // Seul le vendeur propriétaire peut mettre à jour ou supprimer son produit
-      allow update, delete: if request.auth != null && resource.data.sellerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
     }
 
     // Sub-Collection: orders (nested under userProfiles)
     match /userProfiles/{userId}/orders/{orderId} {
       // L'utilisateur ne peut voir, créer, mettre à jour ou supprimer que ses propres commandes
-      allow get, list, create, update, delete: if isOwner(userId);
+      allow read, list, create, update, delete: if isOwner(userId);
     }
     
     // Sub-Collection: messages (nested under liveSessions)
@@ -43,7 +49,7 @@ service cloud.firestore {
         // Tout le monde peut lire les messages
         allow get, list: if true;
         // Seuls les utilisateurs inscrits (non-anonymes) peuvent écrire des messages
-        allow create: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+        allow create: if isSignedUpUser();
     }
     
     // Sub-Collection: featuredProducts (nested under liveSessions)
@@ -51,7 +57,7 @@ service cloud.firestore {
         // Tout le monde peut lire la liste des produits présentés
         allow get, list: if true;
         // Seuls les utilisateurs inscrits (vendeurs) peuvent ajouter ou supprimer des produits
-        allow create, delete: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
+        allow create, delete: if isSignedUpUser();
         // Personne ne peut modifier un produit une fois qu'il est présenté (il faut le retirer et le rajouter)
         allow update: if false;
     }
