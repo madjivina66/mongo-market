@@ -260,9 +260,7 @@ export default function LivePage() {
       streamRef.current = stream;
       setHasCameraPermission(true);
       setIsLive(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      // L'assignation se fera dans le useEffect
     } catch (error) {
       console.error('Erreur d\'accès aux médias:', error);
       setHasCameraPermission(false);
@@ -274,6 +272,13 @@ export default function LivePage() {
       });
     }
   };
+
+  // Ce useEffect gère l'assignation du flux vidéo à l'élément <video>
+  useEffect(() => {
+    if (isLive && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [isLive]); // Il se déclenche quand isLive passe à true
 
   useEffect(() => {
     // Cleanup stream on component unmount
@@ -348,10 +353,10 @@ export default function LivePage() {
                         <span>En direct</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button onClick={toggleMic} variant={isMicOn ? "outline" : "destructive"} size="icon" disabled={!hasCameraPermission}>
+                        <Button onClick={toggleMic} variant={isMicOn ? "outline" : "destructive"} size="icon" disabled={hasCameraPermission === false}>
                             {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                         </Button>
-                        <Button onClick={toggleCamera} variant={isCameraOn ? "outline" : "destructive"} size="icon" disabled={!hasCameraPermission}>
+                        <Button onClick={toggleCamera} variant={isCameraOn ? "outline" : "destructive"} size="icon" disabled={hasCameraPermission === false}>
                             {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
                         </Button>
                         <Button onClick={handleStopLive} variant="destructive" size="sm">Arrêter le direct</Button>
@@ -361,6 +366,12 @@ export default function LivePage() {
                 <CardContent>
                 <div className="aspect-video w-full bg-slate-900 text-white rounded-md overflow-hidden flex items-center justify-center relative">
                     <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                    {!isCameraOn && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                            <VideoOff className="h-12 w-12 text-muted-foreground" />
+                            <p className="mt-2 text-muted-foreground">Caméra coupée</p>
+                        </div>
+                    )}
                     {hasCameraPermission === false && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
                             <VideoOff className="h-12 w-12 text-muted-foreground" />
@@ -373,7 +384,7 @@ export default function LivePage() {
                     <AlertTitle>Accès à la caméra et au micro requis</AlertTitle>
                     <AlertDescription>
                         Veuillez autoriser l'accès pour démarrer votre diffusion.
-                    </AlertDescription>
+                    </Description>
                     </Alert>
                 )}
                 </CardContent>
@@ -392,5 +403,3 @@ export default function LivePage() {
     </div>
   );
 }
-
-    
