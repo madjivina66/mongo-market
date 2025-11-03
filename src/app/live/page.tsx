@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Send, Mic, MicOff, VideoOff } from 'lucide-react';
-import { useAuth, useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { useAuth } from '@/context/auth-context'; // Correction: Utiliser le bon hook d'authentification
+import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, CollectionReference } from 'firebase/firestore';
 import type { ChatMessage, WithId } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -20,7 +21,7 @@ const LIVE_SESSION_ID = "main_session";
 
 function LiveChat() {
   const firestore = useFirestore();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Utilise maintenant le hook du contexte, qui est correct
   const [newMessage, setNewMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -44,19 +45,18 @@ function LiveChat() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !user || !messagesRef) return;
+    if (newMessage.trim() === '' || !user || user.isAnonymous || !messagesRef) return;
 
-    const messageData: Omit<ChatMessage, 'id' | 'timestamp'> = {
+    // Correction: Création de l'objet message avec le timestamp
+    const messageData = {
       text: newMessage,
       senderId: user.uid,
       senderName: user.displayName || user.email || 'Anonyme',
+      timestamp: serverTimestamp(), // Utilisation du timestamp serveur
     };
 
     // Utilisation de la fonction non bloquante pour une meilleure réactivité
-    addDocumentNonBlocking(messagesRef as CollectionReference, {
-      ...messageData,
-      timestamp: serverTimestamp(),
-    });
+    addDocumentNonBlocking(messagesRef as CollectionReference, messageData);
 
     setNewMessage('');
   };
@@ -88,13 +88,13 @@ function LiveChat() {
           </div>
           <form onSubmit={handleSendMessage} className="mt-4 flex gap-2">
             <Textarea 
-              placeholder={user ? "Écrivez un message..." : "Connectez-vous pour chatter"}
+              placeholder={user && !user.isAnonymous ? "Écrivez un message..." : "Connectez-vous pour chatter"}
               className="flex-1"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              disabled={!user}
+              disabled={!user || user.isAnonymous}
             />
-            <Button type="submit" size="icon" disabled={!user || newMessage.trim() === ''}><Send className="h-4 w-4" /></Button>
+            <Button type="submit" size="icon" disabled={!user || user.isAnonymous || newMessage.trim() === ''}><Send className="h-4 w-4" /></Button>
           </form>
         </CardContent>
       </Card>
