@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart } from 'lucide-react';
+import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart, Tv } from 'lucide-react';
 import { useAuth, useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, CollectionReference } from 'firebase/firestore';
 import type { ChatMessage, WithId, Product } from '@/lib/types';
@@ -21,7 +22,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Drawer,
@@ -236,6 +236,7 @@ function ProductManagerDialog() {
 }
 
 export default function LivePage() {
+  const [isLive, setIsLive] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -246,35 +247,50 @@ export default function LivePage() {
   
   const isSeller = user && !user.isAnonymous;
 
+  const stopStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const startStream = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+      setHasCameraPermission(true);
+      setIsLive(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Erreur d\'accès aux médias:', error);
+      setHasCameraPermission(false);
+      setIsLive(false);
+      toast({
+        variant: 'destructive',
+        title: 'Accès Média Refusé',
+        description: 'Veuillez autoriser l\'accès à la caméra et au micro dans les paramètres de votre navigateur.',
+      });
+    }
+  };
+
   useEffect(() => {
-    const getPermissions = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        streamRef.current = stream;
-        setHasCameraPermission(true);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Erreur d\'accès aux médias:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Accès Média Refusé',
-          description: 'Veuillez autoriser l\'accès à la caméra et au micro dans les paramètres de votre navigateur.',
-        });
-      }
-    };
-
-    getPermissions();
-
+    // Cleanup stream on component unmount
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopStream();
     };
-  }, [toast]);
+  }, []);
+
+  const handleGoLive = () => {
+    startStream();
+  };
+
+  const handleStopLive = () => {
+    stopStream();
+    setIsLive(false);
+    setHasCameraPermission(null);
+  };
   
   const toggleCamera = () => {
       if (streamRef.current) {
@@ -296,7 +312,6 @@ export default function LivePage() {
       }
   };
 
-
   return (
     <div className="mx-auto max-w-7xl">
       <header className="mb-8 text-center">
@@ -304,59 +319,78 @@ export default function LivePage() {
           Session Live
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Présentez vos produits et interagissez en direct avec vos clients.
+          {isLive ? "Vous êtes en direct ! Interagissez avec vos clients." : "Préparez-vous à lancer votre session de vente en direct."}
         </p>
       </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Video className="h-6 w-6" />
-                    <span>Votre diffusion en direct</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button onClick={toggleMic} variant={isMicOn ? "outline" : "destructive"} size="icon" disabled={!hasCameraPermission}>
-                        {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                    </Button>
-                    <Button onClick={toggleCamera} variant={isCameraOn ? "outline" : "destructive"} size="icon" disabled={!hasCameraPermission}>
-                        {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-                    </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-video w-full bg-slate-900 text-white rounded-md overflow-hidden flex items-center justify-center relative">
-                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                 {hasCameraPermission === false && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
-                        <VideoOff className="h-12 w-12 text-muted-foreground" />
-                        <p className="mt-2 text-muted-foreground">Caméra non disponible</p>
-                    </div>
-                )}
-              </div>
-              {hasCameraPermission === false && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertTitle>Accès à la caméra et au micro requis</AlertTitle>
-                  <AlertDescription>
-                    Veuillez autoriser l'accès pour démarrer votre diffusion.
-                  </AlertDescription>
-                </Alert>
-              )}
+      
+      {!isLive ? (
+        <Card className="flex flex-col items-center justify-center py-24">
+            <CardContent className="text-center">
+                <Tv className="mx-auto h-24 w-24 text-muted-foreground/50" />
+                <h2 className="mt-6 text-2xl font-bold font-headline">Vous êtes prêt à passer en direct</h2>
+                <p className="mt-2 text-muted-foreground">Cliquez sur le bouton ci-dessous pour démarrer votre diffusion.</p>
+                <Button size="lg" className="mt-8 font-headline text-xl" onClick={handleGoLive}>
+                    Lancer le direct
+                </Button>
             </CardContent>
-          </Card>
-        </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+            <Card>
+                <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="relative flex items-center justify-center">
+                            <div className="absolute h-3 w-3 rounded-full bg-red-500 animate-ping"></div>
+                            <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                        </div>
+                        <span>En direct</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={toggleMic} variant={isMicOn ? "outline" : "destructive"} size="icon" disabled={!hasCameraPermission}>
+                            {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                        </Button>
+                        <Button onClick={toggleCamera} variant={isCameraOn ? "outline" : "destructive"} size="icon" disabled={!hasCameraPermission}>
+                            {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+                        </Button>
+                        <Button onClick={handleStopLive} variant="destructive" size="sm">Arrêter le direct</Button>
+                    </div>
+                </CardTitle>
+                </CardHeader>
+                <CardContent>
+                <div className="aspect-video w-full bg-slate-900 text-white rounded-md overflow-hidden flex items-center justify-center relative">
+                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                    {hasCameraPermission === false && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                            <VideoOff className="h-12 w-12 text-muted-foreground" />
+                            <p className="mt-2 text-muted-foreground">Caméra non disponible</p>
+                        </div>
+                    )}
+                </div>
+                {hasCameraPermission === false && (
+                    <Alert variant="destructive" className="mt-4">
+                    <AlertTitle>Accès à la caméra et au micro requis</AlertTitle>
+                    <AlertDescription>
+                        Veuillez autoriser l'accès pour démarrer votre diffusion.
+                    </AlertDescription>
+                    </Alert>
+                )}
+                </CardContent>
+            </Card>
+            </div>
 
-        <div className="space-y-8">
-          <LiveChat />
-          <div className="space-y-4">
-            {isSeller && <ProductManagerDialog />}
-            <FeaturedProducts />
-          </div>
+            <div className="space-y-8">
+            <LiveChat />
+            <div className="space-y-4">
+                {isSeller && <ProductManagerDialog />}
+                <FeaturedProducts />
+            </div>
+            </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+
+    
