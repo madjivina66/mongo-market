@@ -1,5 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
+  
   match /databases/{database}/documents {
     
     // Helper Functions
@@ -9,10 +10,6 @@ service cloud.firestore {
 
     function isOwner(userId) {
       return request.auth.uid == userId;
-    }
-    
-    function isSignedUpUser() {
-      return isSignedIn() && request.auth.token.firebase.sign_in_provider != "anonymous";
     }
 
     // Collection: userProfiles
@@ -29,10 +26,10 @@ service cloud.firestore {
       allow get, list: if true;
       
       // Seuls les utilisateurs inscrits (non-anonymes) peuvent créer des produits
-      allow create: if isSignedUpUser();
+      allow create: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
 
       // Seul le vendeur propriétaire peut mettre à jour ou supprimer son produit
-      allow update, delete: if isSignedUpUser() && resource.data.sellerId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.sellerId == request.auth.uid;
     }
 
     // Sub-Collection: orders (nested under userProfiles)
@@ -46,7 +43,7 @@ service cloud.firestore {
         // Tout le monde peut lire les messages
         allow get, list: if true;
         // Seuls les utilisateurs inscrits (non-anonymes) peuvent écrire des messages
-        allow create: if isSignedUpUser();
+        allow create: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
     
     // Sub-Collection: featuredProducts (nested under liveSessions)
@@ -54,7 +51,7 @@ service cloud.firestore {
         // Tout le monde peut lire la liste des produits présentés
         allow get, list: if true;
         // Seuls les utilisateurs inscrits (vendeurs) peuvent ajouter ou supprimer des produits
-        allow create, delete: if isSignedUpUser();
+        allow create, delete: if request.auth != null && request.auth.token.firebase.sign_in_provider != 'anonymous';
         // Personne ne peut modifier un produit une fois qu'il est présenté (il faut le retirer et le rajouter)
         allow update: if false;
     }
