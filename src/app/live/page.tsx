@@ -1,27 +1,46 @@
-
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Video, Send, Mic, MicOff, VideoOff } from 'lucide-react';
-import { useAuth } from '@/context/auth-context'; // Correction: Utiliser le bon hook d'authentification
-import { useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart } from 'lucide-react';
+import { useAuth, useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, CollectionReference } from 'firebase/firestore';
-import type { ChatMessage, WithId } from '@/lib/types';
+import type { ChatMessage, WithId, Product } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import Image from 'next/image';
+import { useCart } from '@/context/cart-context';
 
-// Pour cette démo, nous utilisons un ID de session live unique et fixe.
-// Dans une vraie application, cet ID serait généré dynamiquement.
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { FeaturedProductsManager } from './featured-products-manager';
+
 const LIVE_SESSION_ID = "main_session";
 
 function LiveChat() {
   const firestore = useFirestore();
-  const { user } = useAuth(); // Utilise maintenant le hook du contexte, qui est correct
+  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +55,6 @@ function LiveChat() {
 
   const { data: messages, isLoading } = useCollection<ChatMessage>(messagesQuery);
   
-  // Fait défiler le chat vers le bas quand de nouveaux messages arrivent
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -47,17 +65,14 @@ function LiveChat() {
     e.preventDefault();
     if (newMessage.trim() === '' || !user || user.isAnonymous || !messagesRef) return;
 
-    // Correction: Création de l'objet message avec le timestamp
     const messageData = {
       text: newMessage,
       senderId: user.uid,
       senderName: user.displayName || user.email || 'Anonyme',
-      timestamp: serverTimestamp(), // Utilisation du timestamp serveur
+      timestamp: serverTimestamp(),
     };
 
-    // Utilisation de la fonction non bloquante pour une meilleure réactivité
     addDocumentNonBlocking(messagesRef as CollectionReference, messageData);
-
     setNewMessage('');
   };
 
@@ -101,6 +116,125 @@ function LiveChat() {
   )
 }
 
+function FeaturedProducts() {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const { addToCart } = useCart();
+
+    const featuredProductsQuery = useMemoFirebase(() => {
+        return collection(firestore, 'liveSessions', LIVE_SESSION_ID, 'featuredProducts');
+    }, [firestore]);
+    
+    // Le type ici est partiel, car on ne stocke pas toutes les données du produit
+    const { data: products, isLoading } = useCollection<Partial<Product>>(featuredProductsQuery);
+
+    const handleAddToCart = (product: WithId<Partial<Product>>) => {
+        // On doit reconstruire un objet Product complet pour le contexte du panier
+        const fullProduct: Product = {
+            id: product.id,
+            name: product.name || 'Produit sans nom',
+            price: product.price || 0,
+            description: product.description || '',
+            category: product.category || 'Vêtements',
+            imageUrl: product.imageUrl || '',
+            imageHint: product.imageHint || '',
+            sellerId: 'live_session_seller', // Placeholder
+        };
+        addToCart(fullProduct);
+        toast({
+            title: "Ajouté au panier",
+            description: `${fullProduct.name} a été ajouté à votre panier.`,
+        });
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Produits présentés</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {isLoading && <p className="text-muted-foreground text-sm text-center py-8">Chargement...</p>}
+                {!isLoading && (!products || products.length === 0) && (
+                    <p className="text-muted-foreground text-sm text-center py-8">
+                        Les produits que vous ajoutez apparaîtront ici.
+                    </p>
+                )}
+                <div className="space-y-4">
+                    {products?.map(product => (
+                        <div key={product.id} className="flex items-center gap-3">
+                            <Image src={product.imageUrl!} alt={product.name!} width={64} height={64} className="rounded-md object-cover aspect-square" />
+                            <div className="flex-1">
+                                <p className="font-semibold text-sm">{product.name}</p>
+                                <p className="text-muted-foreground text-sm">${product.price?.toFixed(2)}</p>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>
+                                <ShoppingCart className="h-4 w-4 mr-2" />
+                                Ajouter
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function ProductManagerDialog() {
+    const isMobile = useIsMobile();
+    const [open, setOpen] = useState(false);
+
+    if (isMobile) {
+        return (
+            <Drawer open={open} onOpenChange={setOpen}>
+                <DrawerTrigger asChild>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Présenter un produit
+                    </Button>
+                </DrawerTrigger>
+                <DrawerContent className="h-[80%]">
+                    <DrawerHeader className="text-left">
+                        <DrawerTitle>Gérer les produits présentés</DrawerTitle>
+                        <DrawerDescription>
+                            Sélectionnez les produits de votre inventaire à montrer en direct.
+                        </DrawerDescription>
+                    </DrawerHeader>
+                    <div className="p-4 flex-1 overflow-auto">
+                        <FeaturedProductsManager />
+                    </div>
+                    <DrawerFooter className="pt-2">
+                        <DrawerClose asChild>
+                            <Button variant="outline">Fermer</Button>
+                        </DrawerClose>
+                    </DrawerFooter>
+                </DrawerContent>
+            </Drawer>
+        );
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Présenter un produit
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px] h-[70vh] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>Gérer les produits présentés</DialogTitle>
+                    <DialogDescription>
+                        Sélectionnez les produits de votre inventaire à montrer en direct.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex-1 relative min-h-0">
+                    <FeaturedProductsManager />
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export default function LivePage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -108,6 +242,9 @@ export default function LivePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  const isSeller = user && !user.isAnonymous;
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -214,16 +351,10 @@ export default function LivePage() {
 
         <div className="space-y-8">
           <LiveChat />
-          <Card>
-            <CardHeader>
-              <CardTitle>Produits présentés</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm text-center py-8">
-                Les produits que vous ajoutez apparaîtront ici.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            {isSeller && <ProductManagerDialog />}
+            <FeaturedProducts />
+          </div>
         </div>
       </div>
     </div>

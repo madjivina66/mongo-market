@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -48,6 +47,16 @@ service cloud.firestore {
         allow get, list: if true;
         // Seuls les utilisateurs inscrits (non-anonymes) peuvent écrire des messages
         allow create: if isSignedUpUser();
+    }
+    
+    // Sub-Collection: featuredProducts (nested under liveSessions)
+    match /liveSessions/{sessionId}/featuredProducts/{productId} {
+        // Tout le monde peut lire la liste des produits présentés
+        allow get, list: if true;
+        // Seuls les utilisateurs inscrits (vendeurs) peuvent ajouter ou supprimer des produits
+        allow create, delete: if isSignedUpUser();
+        // Personne ne peut modifier un produit une fois qu'il est présenté (il faut le retirer et le rajouter)
+        allow update: if false;
     }
   }
 }
