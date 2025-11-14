@@ -14,6 +14,7 @@ import {
   PlusSquare,
   List,
   Radio,
+  Megaphone,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -35,6 +36,7 @@ const links = [
   { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare, protected: true },
   { href: '/admin/my-products', label: 'Mes Produits', icon: List, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
+  { href: '/strategie', label: 'Stratégie', icon: Megaphone, protected: false },
   { href: '/subscription', label: 'Devenir Pro', icon: Gem, protected: true },
 ];
 
@@ -81,6 +83,9 @@ export function MainNav() {
         if (link.isPro && !isProUser) return null;
         // Hide protected links if not authenticated
         if (link.protected && !isAuthenticated) return null;
+        
+        // Custom rule for "Stratégie" link
+        if (link.href === '/strategie' && isAuthenticated) return null;
 
         return (
           <SidebarMenuItem key={link.href}>
