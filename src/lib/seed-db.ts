@@ -2,9 +2,9 @@
 // Ce script utilise le SDK Admin et est destiné à être exécuté depuis la ligne de commande,
 // PAS depuis le client ou le serveur Next.js.
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { PlaceHolderImages } from './placeholder-images';
-import type { Product, Order } from './types';
+import type { Product, Order, Notification } from './types';
 
 // Pour l'authentification en local, vous devez fournir vos identifiants de service.
 // NOTE: NE COMMETTEZ JAMAIS CE FICHIER AVEC VOS VRAIES CLÉS DE SERVICE DANS UN REPO PUBLIC.
@@ -46,9 +46,7 @@ async function seedDatabase() {
     const productsCollection = adminDb.collection('products');
     const batch = adminDb.batch();
     
-    // Un ID de vendeur de test. Dans une vraie application, il serait dynamique.
     const testSellerId = "seller_test_id_12345";
-    // Un ID d'utilisateur de test pour les commandes.
     const testUserId = "user_test_id_67890";
 
     console.log(`Suppression des anciens produits de test...`);
@@ -63,14 +61,15 @@ async function seedDatabase() {
         return { id: docRef.id, data: product };
     });
 
-    console.log("Ajout de commandes de test pour l'utilisateur de test...");
+    console.log("Ajout de données de test pour l'utilisateur de test...");
     const userProfileRef = adminDb.collection('userProfiles').doc(testUserId);
     
-    // Supprimer les anciennes commandes de test
+    // Supprimer les anciennes commandes et notifications
     const oldOrders = await userProfileRef.collection('orders').get();
     oldOrders.forEach(doc => batch.delete(doc.ref));
+    const oldNotifications = await userProfileRef.collection('notifications').get();
+    oldNotifications.forEach(doc => batch.delete(doc.ref));
     
-    // Créer des commandes de test plus réalistes
     const orders: Omit<Order, 'id'>[] = [
       {
         userId: testUserId,
@@ -98,12 +97,43 @@ async function seedDatabase() {
         batch.set(orderRef, order);
     });
 
+    const notifications: Omit<Notification, 'id'>[] = [
+        {
+            title: "Nouvelle commande reçue",
+            description: "Vous avez une nouvelle commande #7564 pour des Tomates Fraîches.",
+            type: 'order',
+            timestamp: Timestamp.fromDate(new Date()),
+            isRead: false,
+            link: '/orders'
+        },
+        {
+            title: "Produit expédié",
+            description: "Votre commande de Pommes Gala a été expédiée.",
+            type: 'shipping',
+            timestamp: Timestamp.fromDate(new Date(Date.now() - 2 * 60 * 60 * 1000)), // 2 hours ago
+            isRead: false,
+            link: '/orders'
+        },
+        {
+            title: "Promotion spéciale !",
+            description: "Bénéficiez de -15% sur tous les produits de la catégorie 'Fruits'.",
+            type: 'promo',
+            timestamp: Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000)), // 1 day ago
+            isRead: true,
+            link: '/products'
+        }
+    ];
+
+    notifications.forEach(notif => {
+        const notifRef = userProfileRef.collection('notifications').doc();
+        batch.set(notifRef, notif);
+    });
+
     try {
-        console.log("Exécution du batch write pour les produits et les commandes...");
+        console.log("Exécution du batch write pour les produits, commandes et notifications...");
         await batch.commit();
-        console.log(`✅ Succès ! ${productData.length} produits et ${orders.length} commandes ont été ajoutés.`);
-        console.log(`Vous pouvez vous connecter avec l'ID utilisateur '${testUserId}' pour voir les commandes.`);
-        console.log(`Les produits ont été créés pour le vendeur avec l'ID '${testSellerId}'.`);
+        console.log(`✅ Succès ! ${productData.length} produits, ${orders.length} commandes et ${notifications.length} notifications ont été ajoutés.`);
+        console.log(`Vous pouvez vous connecter avec l'ID utilisateur '${testUserId}' pour voir les données.`);
     } catch (error) {
         console.error("❌ Erreur lors de l'ajout des données à la base de données :", error);
         console.log("Vérifiez que vos identifiants d'administration (service account) sont correctement configurés si vous exécutez ce script localement.");

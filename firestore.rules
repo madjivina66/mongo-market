@@ -46,6 +46,14 @@ service cloud.firestore {
       allow read, list, create, update, delete: if isOwner(userId);
     }
     
+    // Sub-Collection: notifications (nested under userProfiles)
+    match /userProfiles/{userId}/notifications/{notificationId} {
+      // L'utilisateur ne peut lire, créer, mettre à jour que ses propres notifications
+      allow read, list, create, update: if isOwner(userId);
+       // Personne ne peut supprimer les notifications pour l'instant
+      allow delete: if false;
+    }
+
     // Sub-Collection: messages (nested under liveSessions)
     match /liveSessions/{sessionId}/messages/{messageId} {
         // Tout le monde peut lire les messages

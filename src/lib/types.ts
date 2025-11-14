@@ -56,3 +56,13 @@ export interface ChatMessage {
   text: string;
   timestamp: any; // Utiliser le serverTimestamp de Firestore
 }
+
+export type Notification = {
+  id: string;
+  title: string;
+  description: string;
+  type: 'order' | 'shipping' | 'promo' | 'system';
+  timestamp: any; // Firestore ServerTimestamp
+  isRead: boolean;
+  link?: string; // Optional link to a relevant page
+};

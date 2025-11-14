@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -12,15 +13,15 @@
         },
         "supplierId": {
           "type": "string",
-          "description": "Reference to the Supplier who listed the product. (Relationship: Supplier 1:N Product)"
+          "description": "Reference to Supplier. (Relationship: Supplier 1:N Product)"
         },
         "name": {
           "type": "string",
-          "description": "Name of the product."
+          "description": "The name of the product."
         },
         "description": {
           "type": "string",
-          "description": "Detailed description of the product."
+          "description": "A detailed description of the product."
         },
         "imageUrl": {
           "type": "string",
@@ -29,11 +30,11 @@
         },
         "price": {
           "type": "number",
-          "description": "Price of the product."
+          "description": "The price of the product."
         },
         "category": {
           "type": "string",
-          "description": "Category the product belongs to."
+          "description": "The category the product belongs to."
         }
       },
       "required": [
@@ -58,67 +59,79 @@
         },
         "name": {
           "type": "string",
-          "description": "Name of the supplier."
+          "description": "The name of the supplier."
         },
         "contactEmail": {
           "type": "string",
-          "description": "Email address of the supplier.",
+          "description": "The contact email address of the supplier.",
           "format": "email"
         },
         "contactPhone": {
           "type": "string",
-          "description": "Phone number of the supplier."
+          "description": "The contact phone number of the supplier."
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the supplier."
         }
       },
       "required": [
         "id",
         "name",
         "contactEmail",
-        "contactPhone"
+        "contactPhone",
+        "address"
       ]
     },
-    "User": {
+    "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user of the MongoMarket application.",
+      "description": "Represents a user's profile in the MongoMarket application.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the User entity."
         },
-        "firstName": {
+        "name": {
           "type": "string",
-          "description": "First name of the user."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "Last name of the user."
+          "description": "The user's full name."
         },
         "email": {
           "type": "string",
-          "description": "Email address of the user.",
+          "description": "The email address of the user.",
           "format": "email"
         },
+        "phone": {
+            "type": "string",
+            "description": "The user's phone number."
+        },
         "address": {
-          "type": "string",
-          "description": "Address of the user."
+          "type": "object",
+          "properties": {
+              "street": {"type": "string"},
+              "city": {"type": "string"},
+              "state": {"type": "string"},
+              "zip": {"type": "string"},
+              "country": {"type": "string"}
+          }
         },
         "paymentMethods": {
           "type": "array",
-          "description": "Payment methods associated with the user.",
+          "description": "Payment methods associated with a user",
           "items": {
             "type": "string"
           }
+        },
+        "isPro": {
+            "type": "boolean",
+            "description": "Indicates if the user has a Pro subscription."
         }
       },
       "required": [
         "id",
-        "firstName",
-        "lastName",
-        "email",
-        "address",
-        "paymentMethods"
+        "name",
+        "email"
       ]
     },
     "Order": {
@@ -133,24 +146,24 @@
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the User who placed the order. (Relationship: User 1:N Order)"
+          "description": "Reference to User. (Relationship: User 1:N Order)"
         },
         "orderDate": {
           "type": "string",
-          "description": "Date and time the order was placed.",
+          "description": "The date and time the order was placed.",
           "format": "date-time"
         },
         "totalAmount": {
           "type": "number",
-          "description": "Total amount of the order."
+          "description": "The total amount of the order."
         },
         "status": {
           "type": "string",
-          "description": "Current status of the order (e.g., pending, processing, shipped, delivered)."
+          "description": "The current status of the order (e.g., pending, processing, shipped, delivered)."
         },
         "orderItems": {
           "type": "array",
-          "description": "Reference to OrderItem. (Relationship: Order 1:N OrderItem)",
+          "description": "List of items in this order",
           "items": {
             "type": "string"
           }
@@ -161,8 +174,7 @@
         "userId",
         "orderDate",
         "totalAmount",
-        "status",
-        "orderItems"
+        "status"
       ]
     },
     "OrderItem": {
@@ -177,19 +189,19 @@
         },
         "orderId": {
           "type": "string",
-          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
+          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
         },
         "productId": {
           "type": "string",
-          "description": "Reference to the Product being ordered. (Relationship: Product 1:N OrderItem)"
+          "description": "Reference to Product. (Relationship: Product 1:N OrderItem)"
         },
         "quantity": {
           "type": "number",
-          "description": "Quantity of the product ordered."
+          "description": "The quantity of the product in the order item."
         },
-        "itemPrice": {
+        "price": {
           "type": "number",
-          "description": "Price of the item at the time of the order."
+          "description": "The price of the order item"
         }
       },
       "required": [
@@ -197,18 +209,87 @@
         "orderId",
         "productId",
         "quantity",
-        "itemPrice"
+        "price"
       ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "type": "object",
+      "description": "Represents a chat message in a live session.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ChatMessage entity."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "The ID of the user who sent the message."
+        },
+        "senderName": {
+          "type": "string",
+          "description": "The display name of the sender."
+        },
+        "text": {
+          "type": "string",
+          "description": "The content of the chat message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The server-side timestamp of when the message was sent.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "senderId",
+        "senderName",
+        "text",
+        "timestamp"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a notification for a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["order", "shipping", "promo", "system"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" },
+        "link": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "title", "description", "type", "timestamp", "isRead"]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google"
     ]
   },
   "firestore": {
     "structure": [
+      {
+        "path": "/userProfiles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profiles. Read access is public, and write access is restricted to the user themselves.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
       {
         "path": "/suppliers/{supplierId}",
         "definition": {
@@ -216,96 +297,116 @@
           "schema": {
             "$ref": "#/backend/entities/Supplier"
           },
-          "description": "Stores supplier profiles. Each document represents a supplier listing products on MongoMarket.",
+          "description": "Stores supplier profiles. Access is restricted to the supplier.",
           "params": [
             {
               "name": "supplierId",
-              "description": "Unique identifier for the supplier."
+              "description": "The unique identifier for the supplier."
             }
           ]
         }
       },
       {
-        "path": "/suppliers/{supplierId}/products/{productId}",
+        "path": "/products/{productId}",
         "definition": {
           "entityName": "Product",
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores products listed by suppliers.  Implicitly owned by the Supplier via path.  Authorization is implicit.",
+          "description": "Stores product information. Open to the public for listing, but create/update restricted to authorized users or roles.",
           "params": [
-            {
-              "name": "supplierId",
-              "description": "Unique identifier for the supplier."
-            },
             {
               "name": "productId",
-              "description": "Unique identifier for the product."
+              "description": "The unique identifier for the product."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles.  Authorization via path.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "Unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
+        "path": "/userProfiles/{userId}/orders/{orderId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores orders placed by users. Authorization via path.",
+          "description": "Stores order information. Orders are owned by users.",
           "params": [
             {
               "name": "userId",
-              "description": "Unique identifier for the user."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "orderId",
-              "description": "Unique identifier for the order."
+              "description": "The unique identifier for the order."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/orders/{orderId}/orderItems/{orderItemId}",
+        "path": "/userProfiles/{userId}/orders/{orderId}/orderItems/{orderItemId}",
         "definition": {
           "entityName": "OrderItem",
           "schema": {
             "$ref": "#/backend/entities/OrderItem"
           },
-          "description": "Stores items within an order. Authorization via path.",
+          "description": "Stores order items. Order items are owned by orders.",
           "params": [
             {
               "name": "userId",
-              "description": "Unique identifier for the user."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "orderId",
-              "description": "Unique identifier for the order."
+              "description": "The unique identifier for the order."
             },
             {
               "name": "orderItemId",
-              "description": "Unique identifier for the order item."
+              "description": "The unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/liveSessions/{sessionId}/messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores chat messages for a specific live session. Publicly readable but only authenticated users can write.",
+          "params": [
+            {
+              "name": "sessionId",
+              "description": "The unique identifier for the live session."
+            },
+            {
+              "name": "messageId",
+              "description": "The unique identifier for the chat message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userProfiles/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/backend/entities/Notification"
+          },
+          "description": "Stores user-specific notifications. Only readable and writable by the user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "notificationId",
+              "description": "The unique identifier for the notification."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support MongoMarket's core features, focusing on product listing, search, orders, and user management. It prioritizes authorization independence and efficient data retrieval.\n\n*   **Suppliers and Products:** Suppliers and their products are structured using hierarchical paths (`/suppliers/{supplierId}/products/{productId}`). This structure simplifies security rules based on supplier ownership of products. Authorization Independence is achieved implicitly as access to products requires knowing the supplierId.\n*   **Users and Orders:**  Orders are stored in a subcollection of users (`/users/{userId}/orders/{orderId}`), making it easy to fetch a user's order history. This also provides authorization independence. The structure enables secure `list` operations for a user's own orders.\n*   **OrderItems:** OrderItems are nested under Orders (`/users/{userId}/orders/{orderId}/orderItems/{orderItemId}`). This is consistent with the hierarchical approach for user-owned data.\n\nThis design facilitates simple and robust security rules, aligning with the core principles of authorization independence, clarity of intent, and prevention of rules as filters."
+    "reasoning": "The Firestore structure is designed to support the MongoMarket application, emphasizing security, scalability, and ease of management. It follows a hierarchical structure for user-owned data and utilizes denormalization for authorization independence.  \n\n*   **UserProfiles:** User profiles are stored under `/userProfiles/{userId}`, ensuring that each user's data is isolated and access is restricted. Orders are stored as a subcollection of UserProfiles.\n*   **Products:** Products are stored under `/products/{productId}`.  Products have a `supplierId` field which is used to display products from specific suppliers.\n*   **Suppliers:** Supplier profiles are stored under `/suppliers/{supplierId}`, with access limited to the supplier and potentially admins.\n*   **Orders:** Orders are stored as a subcollection of user profiles under `/userProfiles/{userId}/orders/{orderId}`. This establishes clear ownership and simplifies security rules. Each order has an `orderItems` field.\n*   **OrderItems:** OrderItems are stored as a subcollection of orders under `/userProfiles/{userId}/orders/{orderId}/orderItems/{orderItemId}`. This establishes clear ownership and simplifies security rules. Each `orderItem` has a `productId` field.  This supports the QAP of allowing users to list all orders.\n*   **Notifications:** Notifications are stored as a subcollection of user profiles under `/userProfiles/{userId}/notifications/{notificationId}`. This structure is private to each user and efficient for fetching user-specific alerts.\n\n**Authorization Independence:**\nAuthorization independence is achieved by avoiding the use of `get()` calls in security rules. This is accomplished by structuring data to enable path-based authorization. This means access control is determined by the document's location in the database hierarchy, rather than relying on data from other documents. For example, orders are stored as subcollections of users, allowing the system to enforce that only the user can access their own orders based on the path `/userProfiles/{userId}/orders/{orderId}`.\n\n**QAPs (Rules are not Filters):**\nThe structure is designed to support secure list operations (QAPs). Because ownership is based on path structure, listing user orders is very efficient and secure.\n\n**Denormalization**: There is not much denormalization in this example.  It might be useful to denormalize some data such as the supplier name in the `products` collection.  In such a case you would simply add a `supplierName` field to the `Product` entity."
   }
 }
