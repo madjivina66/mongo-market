@@ -15,6 +15,7 @@ import {
   List,
   Radio,
   Megaphone,
+  Bell,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -32,6 +33,7 @@ import {
 const links = [
   { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
   { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
+  { href: '/notifications', label: 'Notifications', icon: Bell, protected: true },
   { href: '/strategie', label: 'Stratégie', icon: Megaphone, protected: false },
   { href: '/live', label: 'Live', icon: Radio, protected: true },
   { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare, protected: true },

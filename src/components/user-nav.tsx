@@ -59,6 +59,9 @@ export function UserNav() {
           <Link href="/profile" passHref>
             <DropdownMenuItem>Profil</DropdownMenuItem>
           </Link>
+           <Link href="/notifications" passHref>
+            <DropdownMenuItem>Notifications</DropdownMenuItem>
+          </Link>
           <Link href="/orders" passHref>
             <DropdownMenuItem>Commandes</DropdownMenuItem>
           </Link>
