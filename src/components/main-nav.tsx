@@ -32,11 +32,11 @@ import {
 const links = [
   { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
   { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
+  { href: '/strategie', label: 'Stratégie', icon: Megaphone, protected: false },
   { href: '/live', label: 'Live', icon: Radio, protected: true },
   { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare, protected: true },
   { href: '/admin/my-products', label: 'Mes Produits', icon: List, protected: true },
   { href: '/profile', label: 'Profil', icon: User, protected: true },
-  { href: '/strategie', label: 'Stratégie', icon: Megaphone, protected: false },
   { href: '/subscription', label: 'Devenir Pro', icon: Gem, protected: true },
 ];
 
@@ -74,7 +74,7 @@ export function MainNav() {
       )
   }
 
-  const allLinks = isAuthenticated ? [...links, ...(isProUser ? proLinks : [])] : linksUnauthenticated;
+  const allLinks = isAuthenticated ? [...links, ...(isProUser ? proLinks : [])] : [...links.filter(l => !l.protected), ...linksUnauthenticated];
 
   return (
     <SidebarMenu>
@@ -84,9 +84,6 @@ export function MainNav() {
         // Hide protected links if not authenticated
         if (link.protected && !isAuthenticated) return null;
         
-        // Custom rule for "Stratégie" link
-        if (link.href === '/strategie' && isAuthenticated) return null;
-
         return (
           <SidebarMenuItem key={link.href}>
             <Link href={link.href} className="w-full">
