@@ -30,23 +30,29 @@ import {
   SidebarMenuSkeleton
 } from '@/components/ui/sidebar';
 
-const links = [
-  { href: '/products', label: 'Produits', icon: LayoutGrid, protected: false },
-  { href: '/orders', label: 'Mes commandes', icon: ShoppingBag, protected: true },
-  { href: '/notifications', label: 'Notifications', icon: Bell, protected: true },
-  { href: '/strategie', label: 'Stratégie', icon: Megaphone, protected: false },
-  { href: '/live', label: 'Live', icon: Radio, protected: true },
-  { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare, protected: true },
-  { href: '/admin/my-products', label: 'Mes Produits', icon: List, protected: true },
-  { href: '/profile', label: 'Profil', icon: User, protected: true },
-  { href: '/subscription', label: 'Devenir Pro', icon: Gem, protected: true },
+const baseLinks = [
+  { href: '/products', label: 'Produits', icon: LayoutGrid },
+  { href: '/strategie', label: 'Stratégie', icon: Megaphone },
+];
+
+const authenticatedLinks = [
+  { href: '/orders', label: 'Mes commandes', icon: ShoppingBag },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
+  { href: '/profile', label: 'Profil', icon: User },
+  { href: '/subscription', label: 'Devenir Pro', icon: Gem },
+];
+
+const sellerLinks = [
+  { href: '/live', label: 'Live', icon: Radio },
+  { href: '/admin/my-products', label: 'Mes Produits', icon: List },
+  { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare },
 ];
 
 const proLinks = [
-    { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, protected: true, isPro: true },
+    { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, isPro: true },
 ];
 
-const linksUnauthenticated = [
+const unauthenticatedLinks = [
     { href: '/login', label: 'Connexion', icon: LogIn },
 ];
 
@@ -57,36 +63,44 @@ export function MainNav() {
   const firestore = useFirestore();
 
   const userProfileRef = useMemoFirebase(() => {
-    // CORRECTION : Ne pas essayer de charger le profil pour les utilisateurs anonymes ou non connectés
-    if (!user || user.isAnonymous) return null;
+    if (!isAuthenticated) return null;
     return doc(firestore, 'userProfiles', user.uid);
-  }, [firestore, user]);
+  }, [firestore, user, isAuthenticated]);
 
   const { data: profile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
   const isProUser = profile?.isPro ?? false;
+  
+  // Un "vendeur" est simplement un utilisateur authentifié et non anonyme.
+  const isSeller = isAuthenticated;
 
   if (loading || (isAuthenticated && isLoadingProfile)) {
       return (
           <SidebarMenu>
-              {Array.from({length: 5}).map((_, i) => (
+              {Array.from({length: 8}).map((_, i) => (
                    <SidebarMenuSkeleton key={i} />
               ))}
           </SidebarMenu>
       )
   }
 
-  const allLinks = isAuthenticated ? [...links, ...(isProUser ? proLinks : [])] : [...links.filter(l => !l.protected), ...linksUnauthenticated];
+  const linksToRender = [...baseLinks];
+
+  if (isAuthenticated) {
+    linksToRender.push(...authenticatedLinks);
+    if(isSeller) {
+      linksToRender.push(...sellerLinks);
+    }
+    if (isProUser) {
+      linksToRender.push(...proLinks);
+    }
+  } else {
+    linksToRender.push(...unauthenticatedLinks);
+  }
 
   return (
     <SidebarMenu>
-      {allLinks.map(link => {
-        // Hide pro links if user is not pro, even if authenticated
-        if (link.isPro && !isProUser) return null;
-        // Hide protected links if not authenticated
-        if (link.protected && !isAuthenticated) return null;
-        
-        return (
+      {linksToRender.map(link => (
           <SidebarMenuItem key={link.href}>
             <Link href={link.href} className="w-full">
               <SidebarMenuButton
@@ -100,8 +114,7 @@ export function MainNav() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-        )
-      })}
+      ))}
 
       {isAuthenticated && (
         <SidebarMenuItem>
