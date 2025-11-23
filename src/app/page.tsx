@@ -6,12 +6,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 const categories = [
-  { name: 'Fruits', image: '/images/categories/fruits.jpg', link: '/products?category=Fruits' },
-  { name: 'Légumes', image: '/images/categories/legumes.jpg', link: '/products?category=Légumes' },
-  { name: 'Viande', image: '/images/categories/viande.jpg', link: '/products?category=Viande' },
-  { name: 'Produits laitiers', image: '/images/categories/laitiers.jpg', link: '/products?category=Produits laitiers' },
-  { name: 'Épices', image: '/images/categories/epices.jpg', link: '/products?category=Épices' },
-  { name: 'Boulangerie', image: '/images/categories/boulangerie.jpg', link: '/products?category=Boulangerie' },
+  { name: 'Fruits', image: 'Fruits', link: '/products?category=Fruits' },
+  { name: 'Légumes', image: 'Legumes', link: '/products?category=Légumes' },
+  { name: 'Viande', image: 'Viande', link: '/products?category=Viande' },
+  { name: 'Produits laitiers', image: 'Produits-laitiers', link: '/products?category=Produits laitiers' },
+  { name: 'Épices', image: 'Epices', link: '/products?category=Épices' },
+  { name: 'Boulangerie', image: 'Boulangerie', link: '/products?category=Boulangerie' },
 ];
 
 export default function HomePage() {
@@ -104,7 +104,7 @@ export default function HomePage() {
                 <CardContent className="p-0">
                   <div className="relative h-40">
                     <Image
-                      src={`https://picsum.photos/seed/${category.name.replace(' ','')}/300/200`}
+                      src={`https://picsum.photos/seed/${category.image}/300/200`}
                       alt={category.name}
                       layout="fill"
                       objectFit="cover"
