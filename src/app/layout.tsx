@@ -1,10 +1,20 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { Inter } from 'next/font/google';
 import { AppProviders } from '@/components/AppProviders';
+import { Poppins, PT_Sans } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'] });
+const fontBody = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-body',
+});
+
+const fontHeadline = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-headline',
+});
 
 export const metadata: Metadata = {
   title: 'MongoMarket',
@@ -20,12 +30,11 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className={`font-body antialiased ${inter.className}`}>
+      <body
+        className={`font-body antialiased ${fontBody.variable} ${fontHeadline.variable}`}
+      >
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
