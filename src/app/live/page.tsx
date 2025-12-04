@@ -69,7 +69,7 @@ function LiveChat({ user, onMessagesLoad }: { user: User | null, onMessagesLoad:
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !user || user.isAnonymous || !messagesRef) return;
+    if (newMessage.trim() === '' || !user || !messagesRef) return;
 
     const messageData = {
       text: newMessage,
@@ -78,7 +78,7 @@ function LiveChat({ user, onMessagesLoad }: { user: User | null, onMessagesLoad:
       timestamp: serverTimestamp(),
     };
 
-    await addDocumentNonBlocking(messagesRef as CollectionReference<DocumentData>, messageData);
+    addDocumentNonBlocking(messagesRef as CollectionReference<DocumentData>, messageData);
     setNewMessage('');
   };
 
@@ -88,7 +88,7 @@ function LiveChat({ user, onMessagesLoad }: { user: User | null, onMessagesLoad:
     return formatDistanceToNow(date, { addSuffix: true, locale: fr });
   };
   
-  const isUserAllowedToChat = user && !user.isAnonymous;
+  const isUserAllowedToChat = !!user && !user.isAnonymous;
 
   return (
      <Card>
