@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously, Auth, GoogleAuthProvider, signInWithPopup, getAdditionalUserInfo } from 'firebase/auth';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, signInAnonymously, Auth, GoogleAuthProvider, signInWithPopup, getAdditionalUserInfo, UserCredential } from 'firebase/auth';
 import { useAuth as useFirebaseAuthHook, useFirestore, setDocumentNonBlocking } from '@/firebase'; 
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
@@ -33,21 +33,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // Si un utilisateur est connecté et qu'il est nouveau via un fournisseur externe
-      if (currentUser && !currentUser.isAnonymous) {
-        const additionalInfo = getAdditionalUserInfo(await auth.authStateReady().then(() => result));
-        if (additionalInfo?.isNewUser) {
-           const userProfileRef = doc(firestore, "userProfiles", currentUser.uid);
-            const newUserProfile: Omit<UserProfile, 'id'> = {
-                name: currentUser.displayName || 'Nouvel utilisateur',
-                email: currentUser.email || '',
-                phone: currentUser.phoneNumber || '',
-                address: { street: '', city: '', state: '', zip: '', country: '' },
-                isPro: false,
-            };
-            setDocumentNonBlocking(userProfileRef, newUserProfile, { merge: true });
-        }
-      }
       setUser(currentUser);
       setLoading(false);
     }, (error) => {
