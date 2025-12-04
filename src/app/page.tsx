@@ -5,16 +5,35 @@ import { ArrowRight, Leaf, ShoppingCart, Truck, Laptop, HardDrive, MemoryStick, 
 import Image from 'next/image';
 import Link from 'next/link';
 
-const categories = [
-  { name: 'Fruits', image: 'Fruits', link: '/products?category=Fruits' },
-  { name: 'Légumes', image: 'Legumes', link: '/products?category=Légumes' },
-  { name: 'Viande', image: 'Viande', link: '/products?category=Viande' },
-  { name: 'Produits laitiers', image: 'Produits-laitiers', link: '/products?category=Produits laitiers' },
-  { name: 'Boulangerie', image: 'Boulangerie', link: '/products?category=Boulangerie' },
-  { name: 'Électronique', image: 'Electronique', link: '/products?category=Électronique' },
-  { name: 'Sacs', image: 'Sacs', link: '/products?category=Sacs' },
-  { name: 'Épices', image: 'Epices', link: '/products?category=Épices' },
-];
+import { initializeAdminApp } from '@/lib/firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
+import type { Product } from '@/lib/types';
+import ProductGrid from './products/product-grid';
+
+async function getRecentProducts(): Promise<Product[]> {
+    const adminApp = await initializeAdminApp();
+    const db = getFirestore(adminApp);
+    const productsSnapshot = await db.collection('products').orderBy('createdAt', 'desc').limit(8).get();
+    
+    if (productsSnapshot.empty) {
+        return [];
+    }
+
+    return productsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            name: data.name,
+            description: data.description,
+            price: data.price,
+            category: data.category,
+            imageUrl: data.imageUrl,
+            imageHint: data.imageHint,
+            sellerId: data.sellerId,
+        };
+    }) as Product[];
+}
+
 
 const featuredElectronics = [
     { name: 'Ordinateur Portable Ultra-fin', icon: <Laptop className="w-8 h-8 text-primary" />, description: 'Puissance et portabilité pour les professionnels.' },
@@ -23,7 +42,9 @@ const featuredElectronics = [
     { name: 'Montre Connectée', icon: <Watch className="w-8 h-8 text-primary" />, description: 'Suivez votre activité avec style.' },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const recentProducts = await getRecentProducts();
+
   return (
     <div className="space-y-16 md:space-y-24">
       {/* Hero Section */}
@@ -96,38 +117,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* Categories Section -> Now Recent Products */}
       <section className="container mx-auto px-4">
         <div className="text-center">
           <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary">
-            Nos Catégories
+            Nouveautés
           </h2>
           <p className="mt-2 text-lg text-muted-foreground">
-            Explorez un monde de saveurs et de technologies.
+            Découvrez les derniers produits ajoutés par nos vendeurs.
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4">
-          {categories.map((category) => (
-            <Link href={category.link} key={category.name} className="group block">
-              <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                <CardContent className="p-0">
-                  <div className="relative h-40">
-                    <Image
-                      src={`https://picsum.photos/seed/${category.image}/300/200`}
-                      alt={category.name}
-                      fill
-                      objectFit="cover"
-                      className="transition-transform duration-300 group-hover:scale-110"
-                    />
-                     <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300" />
-                     <h3 className="absolute bottom-2 left-2 font-headline text-lg font-bold text-white drop-shadow-md">
-                        {category.name}
-                     </h3>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+        <div className="mt-12">
+            <ProductGrid products={recentProducts} />
         </div>
          <div className="mt-8 text-center">
             <Button asChild variant="outline">

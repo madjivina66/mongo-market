@@ -44,12 +44,12 @@ const authenticatedLinks = [
 
 const sellerLinks = [
   { href: '/live', label: 'Live', icon: Radio },
-  { href: '/admin/my-products', label: 'Mes Produits', icon: List },
-  { href: '/admin/add-product', label: 'Ajouter un produit', icon: PlusSquare },
+  { href: '/vendeur/mes-produits', label: 'Mes Produits', icon: List },
+  { href: '/vendeur/ajouter-produit', label: 'Ajouter un produit', icon: PlusSquare },
 ];
 
 const proLinks = [
-    { href: '/admin/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, isPro: true },
+    { href: '/vendeur/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, isPro: true },
 ];
 
 const unauthenticatedLinks = [
@@ -71,7 +71,6 @@ export function MainNav() {
 
   const isProUser = profile?.isPro ?? false;
   
-  // Un "vendeur" est simplement un utilisateur authentifié et non anonyme.
   const isSeller = isAuthenticated;
 
   if (loading || (isAuthenticated && isLoadingProfile)) {
@@ -104,7 +103,7 @@ export function MainNav() {
           <SidebarMenuItem key={link.href}>
             <Link href={link.href} className="w-full">
               <SidebarMenuButton
-                isActive={pathname === link.href}
+                isActive={pathname.startsWith(link.href)}
                 className="w-full justify-start"
                 tooltip={link.label}
               >

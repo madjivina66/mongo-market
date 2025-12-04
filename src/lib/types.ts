@@ -1,7 +1,4 @@
 
-
-
-
 export type ProductCategory = 'Légumes' | 'Fruits' | 'Viande' | 'Produits laitiers' | 'Épices' | 'Électronique' | 'Vêtements' | 'Boulangerie' | 'Sacs' | 'Mode';
 
 export type Product = {
@@ -13,6 +10,7 @@ export type Product = {
   imageUrl: string;
   imageHint: string;
   sellerId: string; // Le champ est maintenant requis
+  createdAt: any; // Pour le tri par date
 };
 
 export type WithId<T> = T & { id: string };
