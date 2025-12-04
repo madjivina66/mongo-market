@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Plus } from 'lucide-react';
 import { deleteProduct } from './actions';
 
 
@@ -191,7 +191,7 @@ export default function MyProductsPage() {
             Gérez votre inventaire de produits ici.
             </p>
         </div>
-         <Button asChild>
+         <Button asChild className="hidden md:inline-flex">
             <Link href="/vendeur/ajouter-produit">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Ajouter un produit
@@ -204,6 +204,14 @@ export default function MyProductsPage() {
       ) : (
         <MyProductsList products={products} />
       )}
+
+      {/* Floating Action Button pour mobile */}
+      <Button asChild className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg">
+        <Link href="/vendeur/ajouter-produit">
+          <Plus className="h-6 w-6" />
+          <span className="sr-only">Ajouter un produit</span>
+        </Link>
+      </Button>
     </div>
   );
 }
