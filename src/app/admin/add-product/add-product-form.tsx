@@ -20,7 +20,7 @@ import { addProduct, type ProductFormData } from "./actions";
 import type { ProductCategory } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
-const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements'];
+const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs'];
 
 export function AddProductForm() {
   const [isSaving, setIsSaving] = useState(false);

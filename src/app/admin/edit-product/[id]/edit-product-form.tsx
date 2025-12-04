@@ -19,7 +19,7 @@ import { useAuth } from "@/context/auth-context";
 import { updateProduct, type ProductFormData } from "./actions";
 import type { ProductCategory, WithId, Product } from "@/lib/types";
 
-const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements'];
+const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs'];
 
 interface EditProductFormProps {
     product: WithId<Product>;
@@ -239,5 +239,3 @@ export function EditProductForm({ product }: EditProductFormProps) {
     </Card>
   );
 }
-
-    

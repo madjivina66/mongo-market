@@ -10,8 +10,10 @@ const categories = [
   { name: 'Légumes', image: 'Legumes', link: '/products?category=Légumes' },
   { name: 'Viande', image: 'Viande', link: '/products?category=Viande' },
   { name: 'Produits laitiers', image: 'Produits-laitiers', link: '/products?category=Produits laitiers' },
-  { name: 'Épices', image: 'Epices', link: '/products?category=Épices' },
   { name: 'Boulangerie', image: 'Boulangerie', link: '/products?category=Boulangerie' },
+  { name: 'Électronique', image: 'Electronique', link: '/products?category=Électronique' },
+  { name: 'Sacs', image: 'Sacs', link: '/products?category=Sacs' },
+  { name: 'Épices', image: 'Epices', link: '/products?category=Épices' },
 ];
 
 export default function HomePage() {
@@ -97,7 +99,7 @@ export default function HomePage() {
             Explorez un monde de saveurs.
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4">
           {categories.map((category) => (
             <Link href={category.link} key={category.name} className="group block">
               <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
