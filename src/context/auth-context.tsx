@@ -32,8 +32,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Si un utilisateur est connecté et qu'il est nouveau via un fournisseur externe
+      if (currentUser && !currentUser.isAnonymous) {
+        const additionalInfo = getAdditionalUserInfo(await auth.authStateReady().then(() => result));
+        if (additionalInfo?.isNewUser) {
+           const userProfileRef = doc(firestore, "userProfiles", currentUser.uid);
+            const newUserProfile: Omit<UserProfile, 'id'> = {
+                name: currentUser.displayName || 'Nouvel utilisateur',
+                email: currentUser.email || '',
+                phone: currentUser.phoneNumber || '',
+                address: { street: '', city: '', state: '', zip: '', country: '' },
+                isPro: false,
+            };
+            setDocumentNonBlocking(userProfileRef, newUserProfile, { merge: true });
+        }
+      }
+      setUser(currentUser);
       setLoading(false);
     }, (error) => {
       console.error("Auth state change error:", error);
@@ -48,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, firestore]);
 
   const signup = (email: string, password: string) => {
     if (!auth) return Promise.reject(new Error("Firebase Auth not initialized"));
@@ -93,6 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     if (!auth) return Promise.reject(new Error("Firebase Auth not initialized"));
+    // La déconnexion déclenchera onAuthStateChanged, qui connectera l'utilisateur anonymement.
     return signOut(auth);
   };
 

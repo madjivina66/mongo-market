@@ -53,6 +53,7 @@ export function AppContent({
   const pathname = usePathname();
 
   const isAuthRoute = ['/login', '/signup'].includes(pathname);
+  // La page /checkout est retirée des routes protégées pour autoriser les invités
   const isProtectedRoute = pathname.startsWith('/admin') || ['/orders', '/profile', '/subscription', '/live', '/my-products', '/notifications'].includes(pathname);
 
    useEffect(() => {
