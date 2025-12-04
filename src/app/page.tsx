@@ -117,7 +117,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Categories Section -> Now Recent Products */}
+      {/* Recent Products Section */}
       <section className="container mx-auto px-4">
         <div className="text-center">
           <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary">
@@ -198,6 +198,35 @@ export default async function HomePage() {
              <Button asChild className="mt-6 font-headline" size="lg">
                 <Link href="/products?category=Sacs">
                     Voir la collection
+                </Link>
+             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Bakery Section */}
+      <section className="container mx-auto px-4">
+        <div className="relative rounded-lg overflow-hidden p-8 flex items-center justify-end text-right bg-muted/50 min-h-[400px]">
+          <div className="absolute inset-0 z-0">
+             <Image
+                src="https://picsum.photos/seed/bakery-showcase/1200/500"
+                alt="Assortment of baked goods"
+                fill
+                objectFit="cover"
+                className="opacity-20"
+                data-ai-hint="artisan bakery bread"
+                />
+          </div>
+          <div className="relative z-10 w-full md:w-1/2">
+             <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary">
+                Boulangerie Artisanale
+             </h2>
+             <p className="mt-4 text-lg text-muted-foreground">
+                Du pain frais du jour aux pâtisseries gourmandes, savourez le goût de l'authentique.
+             </p>
+             <Button asChild className="mt-6 font-headline" size="lg">
+                <Link href="/products?category=Boulangerie">
+                    Découvrir nos délices
                 </Link>
              </Button>
           </div>
