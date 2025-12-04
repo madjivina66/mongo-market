@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart, Tv } from 'lucide-react';
+import { Video, Send, Mic, MicOff, VideoOff, PlusCircle, ShoppingCart, Tv, Bot, MessageSquareQuote, Lightbulb, Smile, Meh, Frown, Loader2 } from 'lucide-react';
 import { useAuth, useCollection, useFirestore, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, serverTimestamp, CollectionReference, type DocumentData } from 'firebase/firestore';
-import type { ChatMessage, WithId, Product, UserProfile } from '@/lib/types';
+import type { ChatMessage, WithId, Product, LiveChatSummary } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Image from 'next/image';
@@ -37,10 +37,12 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FeaturedProductsManager } from './featured-products-manager';
+import { getLiveChatSummary } from './actions';
+
 
 const LIVE_SESSION_ID = "main_session";
 
-function LiveChat({ user }: { user: User | null }) {
+function LiveChat({ user, onMessagesLoad }: { user: User | null, onMessagesLoad: (messages: WithId<ChatMessage>[]) => void }) {
   const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,10 @@ function LiveChat({ user }: { user: User | null }) {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+    if (messages) {
+      onMessagesLoad(messages);
+    }
+  }, [messages, onMessagesLoad]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,11 +133,9 @@ function FeaturedProducts() {
         return collection(firestore, 'liveSessions', LIVE_SESSION_ID, 'featuredProducts');
     }, [firestore]);
     
-    // Le type ici est partiel, car on ne stocke pas toutes les données du produit
     const { data: products, isLoading } = useCollection<Partial<Product>>(featuredProductsQuery);
 
     const handleAddToCart = (product: WithId<Partial<Product>>) => {
-        // On doit reconstruire un objet Product complet pour le contexte du panier
         const fullProduct: Product = {
             id: product.id,
             name: product.name || 'Produit sans nom',
@@ -238,6 +241,89 @@ function ProductManagerDialog() {
     );
 }
 
+function AiAssistant({ messages }: { messages: WithId<ChatMessage>[] }) {
+  const [summary, setSummary] = useState<LiveChatSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAnalyzeChat = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSummary(null);
+
+    const chatTranscription = messages.map(m => `${m.senderName}: ${m.text}`).join('\n');
+    
+    try {
+      const result = await getLiveChatSummary({ chatTranscription });
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      setSummary(result.data || null);
+    } catch (e: any) {
+      setError(e.message || "Une erreur est survenue.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const sentimentIcons = {
+    'Positif': <Smile className="h-5 w-5 text-green-500" />,
+    'Neutre': <Meh className="h-5 w-5 text-yellow-500" />,
+    'Négatif': <Frown className="h-5 w-5 text-red-500" />
+  };
+
+  return (
+    <Card className="bg-gradient-to-br from-primary/10 to-background">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="text-primary" />
+          Assistant Vendeur IA
+        </CardTitle>
+        <CardDescription>
+          Analysez le chat pour obtenir des informations et des suggestions en temps réel.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={handleAnalyzeChat} disabled={isLoading || messages.length === 0} className="w-full">
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+          {isLoading ? 'Analyse en cours...' : 'Analyser le chat'}
+        </Button>
+        {error && <p className="text-destructive text-sm mt-4 text-center">{error}</p>}
+        {summary && (
+          <div className="mt-4 space-y-4 text-sm">
+            <div className="flex items-center gap-3 rounded-md border bg-background/50 p-3">
+              {sentimentIcons[summary.sentiment]}
+              <div>
+                <p className="font-semibold">Sentiment général</p>
+                <p className="text-muted-foreground">{summary.sentiment}</p>
+              </div>
+            </div>
+             <div className="flex items-start gap-3 rounded-md border bg-background/50 p-3">
+              <MessageSquareQuote className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+              <div>
+                <p className="font-semibold">Questions clés</p>
+                {summary.keyQuestions.length > 0 ? (
+                  <ul className="list-disc list-inside text-muted-foreground">
+                    {summary.keyQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                  </ul>
+                ) : <p className="text-muted-foreground">Aucune question majeure détectée.</p>}
+              </div>
+            </div>
+             <div className="flex items-start gap-3 rounded-md border bg-background/50 p-3">
+              <Lightbulb className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-1" />
+              <div>
+                <p className="font-semibold">Suggestion de produit</p>
+                <p className="text-muted-foreground">{summary.productSuggestion}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+
 export default function LivePage() {
   const [isLive, setIsLive] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -247,6 +333,7 @@ export default function LivePage() {
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [chatMessages, setChatMessages] = useState<WithId<ChatMessage>[]>([]);
   
   const isSeller = user && !user.isAnonymous;
 
@@ -392,11 +479,16 @@ export default function LivePage() {
             </div>
 
             <div className="space-y-8">
-            <LiveChat user={user} />
-            <div className="space-y-4">
-                {isSeller && <ProductManagerDialog />}
-                <FeaturedProducts />
-            </div>
+                <LiveChat user={user} onMessagesLoad={setChatMessages} />
+                <div className="space-y-4">
+                    {isSeller && (
+                        <>
+                            <AiAssistant messages={chatMessages} />
+                            <ProductManagerDialog />
+                        </>
+                    )}
+                    <FeaturedProducts />
+                </div>
             </div>
         </div>
       )}

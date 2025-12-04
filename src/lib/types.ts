@@ -66,3 +66,10 @@ export type Notification = {
   isRead: boolean;
   link?: string; // Optional link to a relevant page
 };
+
+export type LiveChatSummary = {
+  sentiment: 'Positif' | 'Neutre' | 'Négatif';
+  keyQuestions: string[];
+  popularKeywords: string[];
+  productSuggestion: string;
+};
