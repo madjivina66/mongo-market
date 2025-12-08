@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -16,11 +15,12 @@ import {
   Radio,
   Megaphone,
   Bell,
+  Store,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, doc, query, where } from 'firebase/firestore';
+import type { UserProfile, Product } from '@/lib/types';
 
 
 import {
@@ -48,6 +48,8 @@ const sellerLinks = [
   { href: '/vendeur/ajouter-produit', label: 'Ajouter un produit', icon: PlusSquare },
 ];
 
+const becomeSellerLink = { href: '/devenir-vendeur', label: 'Devenir Vendeur', icon: Store };
+
 const proLinks = [
     { href: '/vendeur/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, isPro: true },
 ];
@@ -69,11 +71,21 @@ export function MainNav() {
 
   const { data: profile, isLoading: isLoadingProfile } = useDoc<UserProfile>(userProfileRef);
 
+  const sellerProductsQuery = useMemoFirebase(() => {
+    if (!isAuthenticated) return null;
+    return query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
+  }, [firestore, user, isAuthenticated]);
+
+  const { data: sellerProducts, isLoading: isLoadingSellerProducts } = useCollection<Product>(sellerProductsQuery);
+
   const isProUser = profile?.isPro ?? false;
   
-  const isSeller = isAuthenticated;
+  // Un utilisateur est un vendeur s'il est authentifié et a au moins un produit
+  const isSeller = isAuthenticated && (sellerProducts ? sellerProducts.length > 0 : false);
+  const isLoading = loading || isLoadingProfile || (isAuthenticated && isLoadingSellerProducts);
 
-  if (loading || (isAuthenticated && isLoadingProfile)) {
+
+  if (isLoading) {
       return (
           <SidebarMenu>
               {Array.from({length: 8}).map((_, i) => (
@@ -89,9 +101,11 @@ export function MainNav() {
     linksToRender.push(...authenticatedLinks);
     if(isSeller) {
       linksToRender.push(...sellerLinks);
-    }
-    if (isProUser) {
-      linksToRender.push(...proLinks);
+      if (isProUser) {
+        linksToRender.push(...proLinks);
+      }
+    } else {
+      linksToRender.push(becomeSellerLink);
     }
   } else {
     linksToRender.push(...unauthenticatedLinks);

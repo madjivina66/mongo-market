@@ -53,7 +53,7 @@ export function AppContent({
   const pathname = usePathname();
 
   const isAuthRoute = ['/login', '/signup'].includes(pathname);
-  const isProtectedRoute = pathname.startsWith('/vendeur') || ['/orders', '/profile', '/subscription', '/live', '/my-products', '/notifications'].includes(pathname);
+  const isProtectedRoute = pathname.startsWith('/vendeur') || ['/orders', '/profile', '/subscription', '/live', '/my-products', '/notifications', '/devenir-vendeur'].includes(pathname);
 
    useEffect(() => {
     // Ne rien faire tant que l'état d'authentification n'est pas résolu
