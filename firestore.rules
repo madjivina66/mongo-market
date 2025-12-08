@@ -18,6 +18,16 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
+    // Renvoie les données d'un document existant.
+    function getExistingData() {
+      return resource.data;
+    }
+
+    // Renvoie les données envoyées dans la requête.
+    function getIncomingData() {
+      return request.resource.data;
+    }
+
     // Collection: userProfiles
     match /userProfiles/{userId} {
       // Un utilisateur peut créer son propre profil.
@@ -37,7 +47,9 @@ service cloud.firestore {
       allow create: if isSignedUpUser();
 
       // Seul le vendeur propriétaire peut mettre à jour ou supprimer son produit
-      allow update, delete: if isSignedUpUser() && resource.data.sellerId == request.auth.uid;
+      // Correction: On utilise `get()` pour vérifier le `sellerId` du document existant.
+      allow update: if isSignedUpUser() && get(/databases/$(database)/documents/products/$(productId)).data.sellerId == request.auth.uid;
+      allow delete: if isSignedUpUser() && get(/databases/$(database)/documents/products/$(productId)).data.sellerId == request.auth.uid;
     }
 
     // Sub-Collection: orders (nested under userProfiles)
