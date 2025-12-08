@@ -15,11 +15,27 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { Skeleton } from './ui/skeleton';
+import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { collection, doc, query, where } from 'firebase/firestore';
+import type { Product } from '@/lib/types';
+
 
 export function UserNav() {
   const { user, logout, loading } = useAuth();
+  const isAuthenticated = !!user && !user.isAnonymous;
+  const firestore = useFirestore();
 
-  if (loading) {
+  // Déterminer si l'utilisateur est un vendeur
+  const sellerProductsQuery = useMemoFirebase(() => {
+    if (!isAuthenticated) return null;
+    return query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
+  }, [firestore, user, isAuthenticated]);
+  const { data: sellerProducts, isLoading: isLoadingSellerProducts } = useCollection<Product>(sellerProductsQuery);
+  const isSeller = isAuthenticated && (sellerProducts ? sellerProducts.length > 0 : false);
+  const isLoading = loading || (isAuthenticated && isLoadingSellerProducts);
+
+
+  if (isLoading) {
     return <Skeleton className="h-9 w-9 rounded-full" />;
   }
 
@@ -70,6 +86,17 @@ export function UserNav() {
           </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+         {/* Lien "Devenir Vendeur" conditionnel */}
+        {!isSeller && (
+            <>
+                <Link href="/devenir-vendeur" passHref>
+                    <DropdownMenuItem>
+                        Devenir Vendeur
+                    </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+            </>
+        )}
         <DropdownMenuItem onClick={logout}>Déconnexion</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

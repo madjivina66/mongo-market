@@ -48,8 +48,6 @@ const sellerLinks = [
   { href: '/vendeur/ajouter-produit', label: 'Ajouter un produit', icon: PlusSquare },
 ];
 
-const becomeSellerLink = { href: '/devenir-vendeur', label: 'Devenir Vendeur', icon: Store };
-
 const proLinks = [
     { href: '/vendeur/ad-optimizer', label: 'Optimiseur de pub', icon: BarChart, isPro: true },
 ];
@@ -104,8 +102,6 @@ export function MainNav() {
       if (isProUser) {
         linksToRender.push(...proLinks);
       }
-    } else {
-      linksToRender.push(becomeSellerLink);
     }
   } else {
     linksToRender.push(...unauthenticatedLinks);
