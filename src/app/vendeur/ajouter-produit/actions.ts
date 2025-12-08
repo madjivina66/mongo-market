@@ -61,7 +61,7 @@ export async function addProduct(
       imageUrl: data.imageUrl,
       imageHint: data.imageHint,
       sellerId, // Utilisation de l'ID statique
-      createdAt: new Date(),
+      createdAt: new Date(), // CORRECTION : Ajout du champ createdAt
     });
     
     revalidatePath("/");
