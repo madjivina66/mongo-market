@@ -78,13 +78,17 @@ export function LoginForm() {
       router.push('/products');
     } catch (error: any) {
       let description = `Une erreur est survenue : ${error.code || error.message}`;
-      if (error.code === 'auth/operation-not-allowed' || error.code === 'auth/unauthorized-domain') {
-        description = "La connexion Google n'est pas activée pour ce site. Le propriétaire doit ajouter ce domaine aux fournisseurs d'authentification dans la console Firebase.";
+      // Vérifie les erreurs spécifiques liées à la configuration
+      if (error.code === 'auth/operation-not-allowed') {
+        description = "ACTION REQUISE : La connexion Google n'est pas activée. Allez dans la console Firebase > Authentication > Sign-in method, et activez le fournisseur 'Google'.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+          description = "ACTION REQUISE : Ce domaine n'est pas autorisé. Allez dans la console Firebase > Authentication > Settings > Authorized domains, et ajoutez le domaine de votre application.";
       }
       toast({
         title: 'Erreur de connexion Google',
         description: description,
         variant: 'destructive',
+        duration: 9000, // Laisse le message plus longtemps
       });
     } finally {
       setIsGoogleLoading(false);
