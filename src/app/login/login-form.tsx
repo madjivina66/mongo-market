@@ -71,27 +71,25 @@ export function LoginForm() {
     setIsGoogleLoading(true);
     try {
       await loginWithGoogle();
-      toast({
-        title: 'Connexion réussie',
-        description: 'Vous êtes maintenant connecté avec Google.',
-      });
-      router.push('/products');
+      // La redirection se produit, donc le code ci-dessous ne sera exécuté que si la redirection échoue immédiatement.
+      // Le succès de la connexion est géré par le `onAuthStateChanged` et `getRedirectResult` dans AuthContext.
     } catch (error: any) {
       let description = `Une erreur est survenue : ${error.code || error.message}`;
-      // Vérifie les erreurs spécifiques liées à la configuration
       if (error.code === 'auth/operation-not-allowed') {
         description = "ACTION REQUISE : La connexion Google n'est pas activée. Allez dans la console Firebase > Authentication > Sign-in method, et activez le fournisseur 'Google'.";
       } else if (error.code === 'auth/unauthorized-domain') {
           description = "ACTION REQUISE : Ce domaine n'est pas autorisé. Allez dans la console Firebase > Authentication > Settings > Authorized domains, et ajoutez le domaine de votre application.";
       }
+       else if (error.code === 'auth/popup-blocked') {
+          description = "Le navigateur a bloqué la fenêtre de connexion. La redirection va maintenant être utilisée.";
+      }
       toast({
         title: 'Erreur de connexion Google',
         description: description,
         variant: 'destructive',
-        duration: 9000, // Laisse le message plus longtemps
+        duration: 9000,
       });
-    } finally {
-      setIsGoogleLoading(false);
+      setIsGoogleLoading(false); // Réinitialiser le chargement en cas d'erreur immédiate
     }
   }
   
