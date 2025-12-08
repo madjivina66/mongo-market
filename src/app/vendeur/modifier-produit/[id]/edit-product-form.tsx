@@ -64,12 +64,10 @@ export function EditProductForm({ product }: EditProductFormProps) {
     setIsSaving(true);
     
     try {
-      const idToken = await user.getIdToken(true);
-      
       // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
       const { image, ...dataToSend } = values;
       
-      const result = await updateProduct(product.id, dataToSend, idToken);
+      const result = await updateProduct(product.id, dataToSend);
 
       if (result.error) {
         throw new Error(result.error);

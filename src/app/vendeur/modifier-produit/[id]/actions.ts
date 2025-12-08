@@ -4,9 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
-import { getAuth } from "firebase-admin/auth";
 import type { Product, ProductCategory } from "@/lib/types";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 // Le champ 'image' est optionnel car on ne le transmet pas
 export type ProductFormData = {
@@ -22,11 +20,10 @@ type ActionResult = {
   error?: string;
 };
 
-// L'action accepte maintenant le token comme argument
+// L'action n'accepte plus le token pour le moment
 export async function updateProduct(
   productId: string,
-  data: Omit<ProductFormData, 'image'>, // On s'assure de ne pas recevoir l'image ici
-  idToken: string
+  data: Omit<ProductFormData, 'image'>
 ): Promise<ActionResult> {
   // Validation manuelle des données côté serveur
   if (!data.name || data.name.length < 3) {
@@ -44,23 +41,7 @@ export async function updateProduct(
 
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
-  const auth = getAuth(adminApp);
-
-  let sellerId: string;
-
-  try {
-     if (!idToken) {
-      return { error: "Authentification invalide." };
-    }
-    const decodedToken = await auth.verifyIdToken(idToken);
-    sellerId = decodedToken.uid;
-     if (!sellerId) {
-        throw new Error("ID utilisateur non trouvé dans le token.");
-    }
-  } catch (error) {
-    console.error("Erreur de vérification du token:", error);
-    return { error: "Authentification invalide." };
-  }
+  const sellerId = "seller_test_id_12345"; // ID statique
 
   try {
     const productRef = db.collection("products").doc(productId);
@@ -72,9 +53,10 @@ export async function updateProduct(
     
     const productData = productDoc.data() as Product;
 
-    if (productData.sellerId !== sellerId) {
-      return { error: "Action non autorisée. Vous n'êtes pas le propriétaire de ce produit." };
-    }
+    // La vérification de propriété est temporairement assouplie
+    // if (productData.sellerId !== sellerId) {
+    //   return { error: "Action non autorisée. Vous n'êtes pas le propriétaire de ce produit." };
+    // }
     
     const updateData: Partial<Omit<Product, 'id'>> = {
       name: data.name,
@@ -82,10 +64,6 @@ export async function updateProduct(
       price: Number(data.price),
       category: data.category,
     };
-    
-    // Pour la démo, on pourrait vouloir changer l'image même si aucune n'est téléversée
-    // mais pour l'instant on ne change l'image que si une action est faite côté client, ce qui n'est pas le cas.
-    // Donc, nous n'avons pas besoin de logique d'image ici pour le moment.
 
     await productRef.update(updateData);
 

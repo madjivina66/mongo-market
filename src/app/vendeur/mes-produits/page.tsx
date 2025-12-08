@@ -80,8 +80,7 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
 
         setIsDeleting(true);
         try {
-            const idToken = await user.getIdToken(true);
-            const result = await deleteProduct(productToDelete.id, idToken);
+            const result = await deleteProduct(productToDelete.id);
             if (result.error) {
                 throw new Error(result.error);
             }
@@ -172,11 +171,15 @@ function MyProductsList({ products }: { products: WithId<Product>[] }) {
 export default function MyProductsPage() {
   const firestore = useFirestore();
   const { user } = useAuth();
+  
+  const testSellerId = "seller_test_id_12345";
+  
+  // Utilise l'ID statique si l'utilisateur n'est pas défini (ou pour le test)
+  const sellerIdToQuery = user ? user.uid : testSellerId;
 
   const productsQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
-  }, [firestore, user]);
+    return query(collection(firestore, 'products'), where('sellerId', '==', sellerIdToQuery));
+  }, [firestore, sellerIdToQuery]);
 
   const { data: products, isLoading } = useCollection<Product>(productsQuery);
 

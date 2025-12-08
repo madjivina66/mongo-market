@@ -62,9 +62,6 @@ export function AddProductForm() {
     setIsSaving(true);
     
     try {
-      // On récupère un token frais juste avant de lancer l'action serveur
-      const idToken = await user.getIdToken(true);
-
       // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
       const { image, ...data } = values;
 
@@ -77,7 +74,7 @@ export function AddProductForm() {
         imageHint: placeholderImage.imageHint,
       };
 
-      const result = await addProduct(dataToSend, idToken);
+      const result = await addProduct(dataToSend);
       
       if (result.error) {
         throw new Error(result.error);
