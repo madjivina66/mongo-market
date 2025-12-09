@@ -62,16 +62,16 @@ export function AddProductForm() {
     setIsSaving(true);
     
     try {
-      // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
       const { image, ...data } = values;
 
-      // On choisit l'image aléatoire ici, côté client
-      const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+      // Utiliser l'image de prévisualisation si elle existe, sinon une image de substitution par défaut
+      const imageUrl = imagePreview || PlaceHolderImages[0].imageUrl;
+      const imageHint = imagePreview ? "uploaded image" : PlaceHolderImages[0].imageHint;
 
       const dataToSend = {
         ...data,
-        imageUrl: placeholderImage.imageUrl,
-        imageHint: placeholderImage.imageHint,
+        imageUrl: imageUrl,
+        imageHint: imageHint,
       };
 
       const result = await addProduct(dataToSend);
@@ -227,7 +227,7 @@ export function AddProductForm() {
                         )}
                         <FormMessage />
                         <p className="text-xs text-muted-foreground mt-2">
-                            Note: Le téléversement de fichier n'est pas encore fonctionnel. Une image de substitution sera utilisée.
+                            Note: Le téléversement de fichier n'est pas encore fonctionnel. Une image de substitution sera utilisée si aucun fichier n'est sélectionné.
                         </p>
                     </FormItem>
                 )}
