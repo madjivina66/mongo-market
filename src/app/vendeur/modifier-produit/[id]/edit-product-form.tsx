@@ -18,8 +18,9 @@ import { useAuth } from "@/context/auth-context";
 
 import { updateProduct, type ProductFormData } from "./actions";
 import type { ProductCategory, WithId, Product } from "@/lib/types";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 
-const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs', 'Mode'];
+const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs'];
 
 interface EditProductFormProps {
     product: WithId<Product>;
@@ -33,6 +34,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(product.imageUrl);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<ProductFormData>({
     defaultValues: {
@@ -51,6 +53,17 @@ export function EditProductForm({ product }: EditProductFormProps) {
     };
   }, [imagePreview, product.imageUrl]);
 
+  async function uploadImage(file: File): Promise<string> {
+    if (!user) throw new Error("Utilisateur non authentifié.");
+    const storage = getStorage();
+    const imagePath = `products/${product.id}/${file.name}`;
+    const imageRef = storageRef(storage, imagePath);
+
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+    return downloadURL;
+  }
+
   async function onSubmit(values: ProductFormData) {
     if (!user) {
       toast({
@@ -64,10 +77,16 @@ export function EditProductForm({ product }: EditProductFormProps) {
     setIsSaving(true);
     
     try {
-      // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
-      const { image, ...dataToSend } = values;
+      let imageUrl = product.imageUrl;
+      if (selectedFile) {
+          imageUrl = await uploadImage(selectedFile);
+      }
       
-      const result = await updateProduct(product.id, dataToSend);
+      const idToken = await user.getIdToken(true);
+      
+      const dataToSend = { ...values, imageUrl };
+      
+      const result = await updateProduct(product.id, dataToSend, idToken);
 
       if (result.error) {
         throw new Error(result.error);
@@ -137,11 +156,20 @@ export function EditProductForm({ product }: EditProductFormProps) {
                     control={form.control}
                     name="price"
                     rules={{ required: "Le prix est requis.", min: { value: 0.01, message: "Le prix doit être positif."} }}
-                    render={({ field }) => (
+                    render={({ field: { onChange, value, ...rest } }) => (
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                           <Input
+                             type="number"
+                             step="0.01"
+                             value={value === undefined ? '' : value}
+                             onChange={e => {
+                                 const val = e.target.value;
+                                 onChange(val === '' ? undefined : parseFloat(val));
+                             }}
+                             {...rest}
+                            />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -196,6 +224,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
                                         const file = e.target.files?.[0];
                                         if (file) {
                                             field.onChange(file);
+                                            setSelectedFile(file);
                                             setFileName(file.name);
                                             if (imagePreview && imagePreview !== product.imageUrl) {
                                               URL.revokeObjectURL(imagePreview);
@@ -221,7 +250,7 @@ export function EditProductForm({ product }: EditProductFormProps) {
                         )}
                         <FormMessage />
                         <p className="text-xs text-muted-foreground mt-2">
-                            Si vous ne sélectionnez pas de nouvelle image, l'ancienne sera conservée. Sinon, une image de substitution sera utilisée pour la démo.
+                            Si vous ne sélectionnez pas de nouvelle image, l'ancienne sera conservée.
                         </p>
                     </FormItem>
                 )}

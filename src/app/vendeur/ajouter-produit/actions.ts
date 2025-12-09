@@ -4,10 +4,10 @@
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
+import { getAuth } from "firebase-admin/auth";
 import type { ProductCategory } from "@/lib/types";
 
 // Ce type définit la structure des données du formulaire
-// Le champ 'image' est optionnel car on ne le transmet pas
 export type ProductFormData = {
   name: string;
   description: string;
@@ -15,7 +15,6 @@ export type ProductFormData = {
   category: ProductCategory;
   imageUrl: string;
   imageHint: string;
-  image?: any;
 };
 
 type ActionResult = {
@@ -23,9 +22,10 @@ type ActionResult = {
   error?: string;
 };
 
-// L'action n'accepte plus le token pour le moment pour contourner le bug
+// L'action accepte maintenant le token comme argument
 export async function addProduct(
-  data: Omit<ProductFormData, 'image'>
+  data: ProductFormData,
+  idToken: string
 ): Promise<ActionResult> {
 
   // Validation manuelle des données côté serveur
@@ -41,16 +41,30 @@ export async function addProduct(
   if (!data.category) {
     return { error: "La catégorie est requise." };
   }
-  if (!data.imageUrl || !data.imageHint) {
+  if (!data.imageUrl) {
     return { error: "L'image du produit est requise." };
   }
 
   // Initialiser l'app admin Firebase pour accéder à Firestore côté serveur
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
-  
-  // Utilisation d'un ID de vendeur statique pour le test
-  const sellerId = "seller_test_id_12345";
+  const auth = getAuth(adminApp);
+
+  let sellerId: string;
+
+  try {
+     if (!idToken) {
+      return { error: "Authentification invalide. Jeton manquant." };
+    }
+    const decodedToken = await auth.verifyIdToken(idToken);
+    sellerId = decodedToken.uid;
+    if (!sellerId) {
+        throw new Error("ID utilisateur non trouvé dans le token.");
+    }
+  } catch (error) {
+    console.error("Erreur de vérification du token:", error);
+    return { error: "Authentification invalide. Impossible de vérifier l'utilisateur." };
+  }
 
   try {
     const docRef = await db.collection("products").add({
@@ -60,8 +74,8 @@ export async function addProduct(
       category: data.category,
       imageUrl: data.imageUrl,
       imageHint: data.imageHint,
-      sellerId, // Utilisation de l'ID statique
-      createdAt: new Date(), // CORRECTION : Ajout du champ createdAt
+      sellerId, // Utilisation de l'ID vérifié
+      createdAt: new Date(),
     });
     
     revalidatePath("/");

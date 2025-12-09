@@ -4,6 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
+import { getAuth } from "firebase-admin/auth";
 import type { Product, ProductCategory } from "@/lib/types";
 
 // Le champ 'image' est optionnel car on ne le transmet pas
@@ -12,7 +13,7 @@ export type ProductFormData = {
   description: string;
   price: number;
   category: ProductCategory;
-  image?: any;
+  imageUrl: string;
 };
 
 type ActionResult = {
@@ -20,10 +21,11 @@ type ActionResult = {
   error?: string;
 };
 
-// L'action n'accepte plus le token pour le moment
+// L'action accepte maintenant le token comme argument
 export async function updateProduct(
   productId: string,
-  data: Omit<ProductFormData, 'image'>
+  data: ProductFormData,
+  idToken: string
 ): Promise<ActionResult> {
   // Validation manuelle des données côté serveur
   if (!data.name || data.name.length < 3) {
@@ -38,10 +40,29 @@ export async function updateProduct(
   if (!data.category) {
     return { error: "La catégorie est requise." };
   }
+  if (!data.imageUrl) {
+    return { error: "L'URL de l'image est requise." };
+  }
 
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
-  const sellerId = "seller_test_id_12345"; // ID statique
+  const auth = getAuth(adminApp);
+
+  let sellerId: string;
+
+  try {
+     if (!idToken) {
+      return { error: "Authentification invalide." };
+    }
+    const decodedToken = await auth.verifyIdToken(idToken);
+    sellerId = decodedToken.uid;
+     if (!sellerId) {
+        throw new Error("ID utilisateur non trouvé dans le token.");
+    }
+  } catch (error) {
+    console.error("Erreur de vérification du token:", error);
+    return { error: "Authentification invalide." };
+  }
 
   try {
     const productRef = db.collection("products").doc(productId);
@@ -53,16 +74,16 @@ export async function updateProduct(
     
     const productData = productDoc.data() as Product;
 
-    // La vérification de propriété est temporairement assouplie
-    // if (productData.sellerId !== sellerId) {
-    //   return { error: "Action non autorisée. Vous n'êtes pas le propriétaire de ce produit." };
-    // }
+    if (productData.sellerId !== sellerId) {
+      return { error: "Action non autorisée. Vous n'êtes pas le propriétaire de ce produit." };
+    }
     
     const updateData: Partial<Omit<Product, 'id'>> = {
       name: data.name,
       description: data.description,
       price: Number(data.price),
       category: data.category,
+      imageUrl: data.imageUrl,
     };
 
     await productRef.update(updateData);

@@ -19,8 +19,10 @@ import { useAuth } from "@/context/auth-context";
 import { addProduct, type ProductFormData } from "./actions";
 import type { ProductCategory } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid'; // Pour générer des IDs uniques
 
-const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs', 'Mode'];
+const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs'];
 
 type FormValues = Omit<ProductFormData, 'imageUrl' | 'imageHint'>;
 
@@ -32,12 +34,13 @@ export function AddProductForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<FormValues>({
     defaultValues: {
       name: "",
       description: "",
-      price: undefined, // Initialiser comme undefined pour éviter le NaN
+      price: 0,
       category: 'Légumes',
     },
   });
@@ -50,6 +53,17 @@ export function AddProductForm() {
     };
   }, [imagePreview]);
 
+  async function uploadImage(file: File): Promise<string> {
+    if (!user) throw new Error("Utilisateur non authentifié.");
+    const storage = getStorage();
+    // Utiliser l'ID utilisateur et un nom de fichier unique pour éviter les conflits
+    const imagePath = `products/${user.uid}/${uuidv4()}-${file.name}`;
+    const imageRef = storageRef(storage, imagePath);
+
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+    return downloadURL;
+  }
 
   async function onSubmit(values: FormValues) {
     if (!user) {
@@ -64,19 +78,23 @@ export function AddProductForm() {
     setIsSaving(true);
     
     try {
-      const { image, ...data } = values;
+      let imageUrl = PlaceHolderImages[0].imageUrl;
+      let imageHint = PlaceHolderImages[0].imageHint;
 
-      // Utiliser l'image de prévisualisation si elle existe, sinon une image de substitution par défaut
-      const imageUrl = imagePreview || PlaceHolderImages[0].imageUrl;
-      const imageHint = imagePreview ? "uploaded image" : PlaceHolderImages[0].imageHint;
+      if (selectedFile) {
+        imageUrl = await uploadImage(selectedFile);
+        imageHint = "uploaded image";
+      }
+      
+      const idToken = await user.getIdToken(true);
 
       const dataToSend = {
-        ...data,
-        imageUrl: imageUrl,
-        imageHint: imageHint,
+        ...values,
+        imageUrl,
+        imageHint,
       };
 
-      const result = await addProduct(dataToSend);
+      const result = await addProduct(dataToSend, idToken);
       
       if (result.error) {
         throw new Error(result.error);
@@ -145,20 +163,11 @@ export function AddProductForm() {
                     control={form.control}
                     name="price"
                     rules={{ required: "Le prix est requis.", min: { value: 0.01, message: "Le prix doit être positif."} }}
-                    render={({ field: { onChange, value, ...rest } }) => (
+                    render={({ field }) => (
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
                         <FormControl>
-                            <Input
-                             type="number"
-                             step="0.01"
-                             value={value === undefined ? '' : value}
-                             onChange={e => {
-                                 const val = e.target.value;
-                                 onChange(val === '' ? undefined : parseFloat(val));
-                             }}
-                             {...rest}
-                            />
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -213,6 +222,7 @@ export function AddProductForm() {
                                         const file = e.target.files?.[0];
                                         if (file) {
                                             field.onChange(file);
+                                            setSelectedFile(file);
                                             setFileName(file.name);
                                             if (imagePreview) {
                                               URL.revokeObjectURL(imagePreview);
@@ -237,9 +247,6 @@ export function AddProductForm() {
                             </div>
                         )}
                         <FormMessage />
-                        <p className="text-xs text-muted-foreground mt-2">
-                            Note: Le téléversement de fichier n'est pas encore fonctionnel. Une image de substitution sera utilisée si aucun fichier n'est sélectionné.
-                        </p>
                     </FormItem>
                 )}
             />
