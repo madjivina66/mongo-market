@@ -54,8 +54,8 @@ export function AddProductForm() {
   async function uploadImage(file: File): Promise<string> {
     if (!user) throw new Error("Utilisateur non authentifié.");
     const storage = getStorage();
-    const productId = uuidv4();
-    const imagePath = `products/${productId}/${file.name}`;
+    // Utiliser l'ID utilisateur et un nom de fichier unique pour éviter les conflits
+    const imagePath = `products/${user.uid}/${uuidv4()}-${file.name}`;
     const imageRef = storageRef(storage, imagePath);
 
     await uploadBytes(imageRef, file);
