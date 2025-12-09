@@ -6,7 +6,6 @@ import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/lib/firebase-admin";
 import { getAuth } from "firebase-admin/auth";
 import type { Product, ProductCategory } from "@/lib/types";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 // Le champ 'image' est optionnel car on ne le transmet pas
 export type ProductFormData = {
@@ -14,7 +13,7 @@ export type ProductFormData = {
   description: string;
   price: number;
   category: ProductCategory;
-  image?: any;
+  imageUrl: string;
 };
 
 type ActionResult = {
@@ -25,7 +24,7 @@ type ActionResult = {
 // L'action accepte maintenant le token comme argument
 export async function updateProduct(
   productId: string,
-  data: Omit<ProductFormData, 'image'>, // On s'assure de ne pas recevoir l'image ici
+  data: ProductFormData,
   idToken: string
 ): Promise<ActionResult> {
   // Validation manuelle des données côté serveur
@@ -40,6 +39,9 @@ export async function updateProduct(
   }
   if (!data.category) {
     return { error: "La catégorie est requise." };
+  }
+  if (!data.imageUrl) {
+    return { error: "L'URL de l'image est requise." };
   }
 
   const adminApp = await initializeAdminApp();
@@ -81,11 +83,8 @@ export async function updateProduct(
       description: data.description,
       price: Number(data.price),
       category: data.category,
+      imageUrl: data.imageUrl,
     };
-    
-    // Pour la démo, on pourrait vouloir changer l'image même si aucune n'est téléversée
-    // mais pour l'instant on ne change l'image que si une action est faite côté client, ce qui n'est pas le cas.
-    // Donc, nous n'avons pas besoin de logique d'image ici pour le moment.
 
     await productRef.update(updateData);
 
@@ -103,5 +102,3 @@ export async function updateProduct(
     return { error: errorMessage };
   }
 }
-
-    

@@ -8,7 +8,6 @@ import { getAuth } from "firebase-admin/auth";
 import type { ProductCategory } from "@/lib/types";
 
 // Ce type définit la structure des données du formulaire
-// Le champ 'image' est optionnel car on ne le transmet pas
 export type ProductFormData = {
   name: string;
   description: string;
@@ -16,7 +15,6 @@ export type ProductFormData = {
   category: ProductCategory;
   imageUrl: string;
   imageHint: string;
-  image?: any;
 };
 
 type ActionResult = {
@@ -26,7 +24,7 @@ type ActionResult = {
 
 // L'action accepte maintenant le token comme argument
 export async function addProduct(
-  data: Omit<ProductFormData, 'image'>, // On s'assure de ne pas recevoir l'image ici
+  data: ProductFormData,
   idToken: string
 ): Promise<ActionResult> {
 
@@ -43,7 +41,7 @@ export async function addProduct(
   if (!data.category) {
     return { error: "La catégorie est requise." };
   }
-  if (!data.imageUrl || !data.imageHint) {
+  if (!data.imageUrl) {
     return { error: "L'image du produit est requise." };
   }
 

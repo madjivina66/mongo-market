@@ -19,6 +19,8 @@ import { useAuth } from "@/context/auth-context";
 import { addProduct, type ProductFormData } from "./actions";
 import type { ProductCategory } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid'; // Pour générer des IDs uniques
 
 const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs'];
 
@@ -30,6 +32,7 @@ export function AddProductForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<Omit<ProductFormData, 'imageUrl' | 'imageHint'>>({
     defaultValues: {
@@ -48,8 +51,19 @@ export function AddProductForm() {
     };
   }, [imagePreview]);
 
+  async function uploadImage(file: File): Promise<string> {
+    if (!user) throw new Error("Utilisateur non authentifié.");
+    const storage = getStorage();
+    const productId = uuidv4();
+    const imagePath = `products/${productId}/${file.name}`;
+    const imageRef = storageRef(storage, imagePath);
 
-  async function onSubmit(values: Omit<ProductFormData, 'imageUrl' | 'imageHint'>) {
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+    return downloadURL;
+  }
+
+  async function onSubmit(values: Omit<ProductFormData, 'imageUrl' | 'imageHint'>>) {
     if (!user) {
       toast({
         title: "Non connecté",
@@ -62,19 +76,20 @@ export function AddProductForm() {
     setIsSaving(true);
     
     try {
-      // On récupère un token frais juste avant de lancer l'action
+      let imageUrl = PlaceHolderImages[0].imageUrl;
+      let imageHint = PlaceHolderImages[0].imageHint;
+
+      if (selectedFile) {
+        imageUrl = await uploadImage(selectedFile);
+        imageHint = "uploaded image";
+      }
+      
       const idToken = await user.getIdToken(true);
 
-      // CORRECTION : On retire l'objet 'image' avant de l'envoyer à l'action serveur
-      const { image, ...data } = values;
-
-      // On choisit l'image aléatoire ici, côté client
-      const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
-
       const dataToSend = {
-        ...data,
-        imageUrl: placeholderImage.imageUrl,
-        imageHint: placeholderImage.imageHint,
+        ...values,
+        imageUrl,
+        imageHint,
       };
 
       const result = await addProduct(dataToSend, idToken);
@@ -205,6 +220,7 @@ export function AddProductForm() {
                                         const file = e.target.files?.[0];
                                         if (file) {
                                             field.onChange(file);
+                                            setSelectedFile(file);
                                             setFileName(file.name);
                                             if (imagePreview) {
                                               URL.revokeObjectURL(imagePreview);
@@ -229,9 +245,6 @@ export function AddProductForm() {
                             </div>
                         )}
                         <FormMessage />
-                        <p className="text-xs text-muted-foreground mt-2">
-                            Note: Le téléversement de fichier n'est pas encore fonctionnel. Une image de substitution sera utilisée.
-                        </p>
                     </FormItem>
                 )}
             />
