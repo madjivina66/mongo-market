@@ -43,13 +43,17 @@ export default function BecomeSellerPage() {
             </CardHeader>
             <CardContent className="grid md:grid-cols-3 gap-8">
                 {advantages.map((adv) => (
-                    <div key={adv.title} className="flex flex-col items-center text-center p-4 rounded-lg">
+                    <Link 
+                        href="/vendeur/ajouter-produit"
+                        key={adv.title} 
+                        className="flex flex-col items-center text-center p-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-muted/50 cursor-pointer"
+                    >
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                            {adv.icon}
                         </div>
                         <h3 className="mt-4 font-semibold font-headline">{adv.title}</h3>
                         <p className="mt-1 text-sm text-muted-foreground">{adv.description}</p>
-                    </div>
+                    </Link>
                 ))}
             </CardContent>
             <CardFooter className="flex-col gap-4 items-center justify-center pt-6 border-t">
