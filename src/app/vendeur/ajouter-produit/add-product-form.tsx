@@ -22,6 +22,8 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const categories: ProductCategory[] = ['Légumes', 'Fruits', 'Viande', 'Produits laitiers', 'Épices', 'Électronique', 'Vêtements', 'Boulangerie', 'Sacs', 'Mode'];
 
+type FormValues = Omit<ProductFormData, 'imageUrl' | 'imageHint'>;
+
 export function AddProductForm() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -31,11 +33,11 @@ export function AddProductForm() {
   const [fileName, setFileName] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const form = useForm<Omit<ProductFormData, 'imageUrl' | 'imageHint'>>({
+  const form = useForm<FormValues>({
     defaultValues: {
       name: "",
       description: "",
-      price: 0,
+      price: undefined, // Initialiser comme undefined pour éviter le NaN
       category: 'Légumes',
     },
   });
@@ -49,7 +51,7 @@ export function AddProductForm() {
   }, [imagePreview]);
 
 
-  async function onSubmit(values: Omit<ProductFormData, 'imageUrl' | 'imageHint'>) {
+  async function onSubmit(values: FormValues) {
     if (!user) {
       toast({
         title: "Non connecté",
@@ -143,11 +145,20 @@ export function AddProductForm() {
                     control={form.control}
                     name="price"
                     rules={{ required: "Le prix est requis.", min: { value: 0.01, message: "Le prix doit être positif."} }}
-                    render={({ field }) => (
+                    render={({ field: { onChange, value, ...rest } }) => (
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                            <Input
+                             type="number"
+                             step="0.01"
+                             value={value === undefined ? '' : value}
+                             onChange={e => {
+                                 const val = e.target.value;
+                                 onChange(val === '' ? undefined : parseFloat(val));
+                             }}
+                             {...rest}
+                            />
                         </FormControl>
                         <FormMessage />
                         </FormItem>

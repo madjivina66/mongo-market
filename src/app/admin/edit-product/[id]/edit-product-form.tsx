@@ -156,11 +156,20 @@ export function EditProductForm({ product }: EditProductFormProps) {
                     control={form.control}
                     name="price"
                     rules={{ required: "Le prix est requis.", min: { value: 0.01, message: "Le prix doit être positif."} }}
-                    render={({ field }) => (
+                    render={({ field: { onChange, value, ...rest } }) => (
                         <FormItem>
                         <FormLabel>Prix ($)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                           <Input
+                             type="number"
+                             step="0.01"
+                             value={value === undefined ? '' : value}
+                             onChange={e => {
+                                 const val = e.target.value;
+                                 onChange(val === '' ? undefined : parseFloat(val));
+                             }}
+                             {...rest}
+                            />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -257,3 +266,5 @@ export function EditProductForm({ product }: EditProductFormProps) {
     </Card>
   );
 }
+
+    

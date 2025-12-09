@@ -54,8 +54,7 @@ export default async function HomePage() {
           src="https://picsum.photos/seed/homehero/1800/800"
           alt="Marché de produits frais"
           fill
-          objectFit="cover"
-          className="z-0"
+          className="z-0 object-cover"
           data-ai-hint="fresh market produce"
         />
         <div className="relative z-20 p-4">
@@ -183,8 +182,7 @@ export default async function HomePage() {
                 src="https://picsum.photos/seed/fashion-bg/1200/500"
                 alt="Fashion background"
                 fill
-                objectFit="cover"
-                className="opacity-20"
+                className="opacity-20 object-cover"
                 data-ai-hint="fashion accessory display"
                 />
           </div>
@@ -212,8 +210,7 @@ export default async function HomePage() {
                 src="https://picsum.photos/seed/bakery-showcase/1200/500"
                 alt="Assortment of baked goods"
                 fill
-                objectFit="cover"
-                className="opacity-20"
+                className="opacity-20 object-cover"
                 data-ai-hint="artisan bakery bread"
                 />
           </div>
@@ -236,3 +233,5 @@ export default async function HomePage() {
     </div>
   );
 }
+
+    
